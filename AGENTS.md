@@ -123,12 +123,16 @@ PROJECT_ROOT/
 ├── .spine/                    mirror — single source of truth
 │   ├── spine.py               doctor / doctor --task
 │   ├── manifest.json
+│   ├── .gitattributes         keeps .spine/ on LF line endings
+│   ├── AGENTS.snippet.md      only when the project already had its own AGENTS.md
 │   ├── commands/  rules/  skills/
 ├── docs/                      seed — memory bank, governance, quality, workflow
 └── <ide dir>/                 pointers — one thin file per command
 ```
 
 Updating a consumer project = running `python spine.py install <project>` again from the Spine clone.
+
+When the installer's behavior, options, or messages change, update the matching sections of [`README.md`](README.md) (Installation, Health checks, Troubleshooting) in the same delivery.
 
 ---
 
