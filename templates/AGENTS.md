@@ -38,6 +38,9 @@ If the IDE does not show a command, read its instructions file directly and foll
 Load a skill only when a command or the task calls for it: read `.spine/skills/<name>/SKILL.md`.
 Which skills may be used is governed by `docs/governance/skills-policy.md`.
 
+The project's own skills, subagents, and commands live in the IDE's directories, never under `.spine/`.
+List each project skill in `docs/governance/skills-policy.md` with the path to its `SKILL.md`.
+
 ## Project documents
 
 - `docs/memory/` — memory bank (context, decisions, progress, tasks)

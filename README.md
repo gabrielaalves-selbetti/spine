@@ -13,6 +13,7 @@ into a project as real, committable files: no Bash, no PowerShell, no symlinks, 
 - [Quick start](#quick-start)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Extending your project](#extending-your-project)
 - [Updating](#updating)
 - [Health checks](#health-checks)
 - [Troubleshooting](#troubleshooting)
@@ -57,6 +58,24 @@ into a project as real, committable files: no Bash, no PowerShell, no symlinks, 
    ```
 
 4. Commit everything that was created, then run `/spine-bootstrap` in the IDE.
+
+From the first install to day-to-day use and updates:
+
+```mermaid
+flowchart TD
+    clone["Clone Spine outside the project"] --> dry["spine.py install --dry-run"]
+    dry --> install["spine.py install --ides ..."]
+    install --> commit["Commit the generated files"]
+    commit --> bootstrap["/spine-bootstrap fills the memory bank"]
+    bootstrap --> work["Daily work: plan, execute, harvest, Pull Request"]
+    work --> newer{"Newer Spine available?"}
+    newer -- no --> work
+    newer -- yes --> pull["Update the Spine clone"]
+    pull --> reinstall["spine.py install (reuses --ides)"]
+    reinstall --> doctor["python .spine/spine.py doctor"]
+    doctor --> recommit["Commit the update"]
+    recommit --> work
+```
 
 The same commands work on macOS and Linux with POSIX paths, for example
 `python3 ~/tools/spine/spine.py install ~/dev/my-project --ides claude`.
@@ -112,6 +131,29 @@ Three kinds of files, three rules:
 | Pointer | per-IDE command files | Rewritten when missing or untouched; your edits are kept unless `--force`. |
 | Seed | `AGENTS.md`, `CLAUDE.md`, `docs/**` | Created only when missing. Never overwritten. |
 
+How `install` decides what to do with each file:
+
+```mermaid
+flowchart TD
+    file["File in the install plan"] --> kind{"Which class?"}
+    kind -- Mirror --> mirror{"Same as the Spine clone?"}
+    mirror -- yes --> keep["KEEP"]
+    mirror -- no --> write["CREATE or UPDATE"]
+    kind -- Pointer --> pointer{"On disk?"}
+    pointer -- missing --> create["CREATE"]
+    pointer -- "up to date" --> keep
+    pointer -- outdated --> edited{"Edited by hand?"}
+    edited -- no --> update["UPDATE"]
+    edited -- "yes, with --force" --> update
+    edited -- "yes, without --force" --> skip["SKIP (your edit is kept)"]
+    kind -- Seed --> seed{"Already exists?"}
+    seed -- yes --> keep
+    seed -- no --> create
+```
+
+Files that a previous install generated and the Spine clone no longer has are removed (`REMOVE`): always
+under `.spine/`, and for pointers only when they were not edited by hand (or with `--force`).
+
 ### Existing `AGENTS.md`
 
 If the project already has an `AGENTS.md`, it is left alone: the Spine hub is written to
@@ -159,16 +201,28 @@ Branches: `main`, `develop`, `staging`, `production`, and work branches `<type>/
 `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release`. Promotion goes
 `develop` → `staging` → `production` → `main`. Details: `docs/workflow/gitflow-operacional.md` in the project.
 
+Delivery of one task, with the task file status at each step:
+
 ```mermaid
 flowchart TD
-    ticket[TrackerTicket] --> plan[SpinePlan]
-    plan --> branch[WorkBranchTypeTaskId]
-    branch --> validate[ImplementAndTest]
-    validate --> harvest[SpineHarvestUpdatesMemoryBank]
-    harvest --> pr[PullRequestIntoDevelop]
-    pr --> staging[PromoteDevelopToStaging]
-    staging --> production[PromoteStagingToProduction]
-    production --> mainSync[SyncProductionWithMain]
+    ticket["Tracker ticket PROJ-123"] --> plan["/spine-plan PROJ-123 goal"]
+    plan --> planned["Task file in active_tasks/ (status PLANNING)"]
+    planned --> execute["/spine-execute task-file"]
+    execute --> branch["Branch type/PROJ-123 from develop (status IN_PROGRESS)"]
+    branch --> tests["Implement test-first and validate (status REVIEW)"]
+    tests --> harvest["/spine-harvest task-file"]
+    harvest --> done["Memory bank updated, task moved to completed_tasks/ (status DONE)"]
+    done --> push["Commit and git push"]
+    push --> pr["Pull Request reviewed and merged into develop"]
+```
+
+Promotion between environments:
+
+```mermaid
+flowchart LR
+    develop["develop"] --> staging["staging"]
+    staging --> production["production"]
+    production --> main["main"]
 ```
 
 ### Memory Bank v2.1
@@ -194,6 +248,67 @@ docs/memory/
 | Core | Every session | global 1–6, progress Current state, open `active_tasks/` |
 | Extended | Plan, harvest, ambiguous scope | `roadmap.md`, full delivery log |
 | On demand | Debugging, recurrence | `learnings.md`, `completed_tasks/` |
+
+## Extending your project
+
+`.spine/` belongs to Spine: it is replaced on every `install`, so nothing of your own goes there. Your
+project's skills, subagents, commands, and rules live in the IDE's own directories and in `AGENTS.md`. The
+installer writes only `.spine/`, its `spine-*.md` command pointers, and missing seed files; everything else
+in `.claude/`, `.cursor/`, and the other IDE directories is never touched.
+
+```mermaid
+flowchart TD
+    start["I want to add or change something"] --> own{"Is it part of Spine itself?"}
+    own -- yes --> clone["Change it in the Spine clone, then run install again"]
+    own -- no --> what{"What is it?"}
+    what -- Skill --> skill["IDE skills directory"]
+    skill --> policy["List it in docs/governance/skills-policy.md"]
+    what -- Subagent --> agent["IDE agents directory"]
+    what -- Command --> command["IDE commands directory, no spine- prefix"]
+    what -- Rule --> rule["AGENTS.md, Project-specific instructions"]
+    what -- "Hooks, MCP, settings" --> config["IDE configuration files"]
+```
+
+| Extension | Where it lives | What Spine needs |
+|---|---|---|
+| Project skill | The IDE's skills directory, e.g. `.claude/skills/<name>/SKILL.md` | An entry in `docs/governance/skills-policy.md` with the path to its `SKILL.md` |
+| Subagent | The IDE's agents directory, e.g. `.claude/agents/<name>.md` | Nothing; mention it in `AGENTS.md` if the team is expected to use it |
+| Project command | The IDE's commands directory, without the `spine-` prefix | Nothing |
+| Project rule | `AGENTS.md`, under "Project-specific instructions" | Nothing; it takes precedence over `.spine/rules/` |
+| Hooks, MCP servers, settings | The IDE's configuration, e.g. `.claude/settings.json` | Nothing |
+
+The paths above are the Claude Code ones. For another IDE, use its equivalent directory. Commit these files
+like the rest, so teammates get them with `git pull`.
+
+### Adding a skill
+
+1. Create the skill where the IDE expects it, for example `.claude/skills/<name>/SKILL.md`.
+2. List it in `docs/governance/skills-policy.md`, under the section for the project's additional skills, with
+   the path to its `SKILL.md`. That file also holds the criteria for adding and removing skills.
+3. Use it. To make it the skill a task is executed with, set `execution_skill: <name>` in the task file's
+   frontmatter. `/spine-execute` does not use a skill the policy does not list.
+
+The nine Spine skills are not registered as native IDE skills. Agents read them from
+`.spine/skills/<name>/SKILL.md` when a command or the policy calls for them.
+
+### Adding a subagent
+
+Create it in the IDE's agents directory, for example `.claude/agents/<name>.md`. Spine neither installs nor
+validates subagents. A subagent that does delivery work should follow the same rules as everyone else: point
+it at `AGENTS.md` (which leads to `.spine/rules/` and the memory bank) instead of copying instructions into it.
+
+### Adding commands and rules
+
+- **Commands** — add them to the IDE's commands directory under any name that does not start with `spine-`.
+  That prefix belongs to the installer, which rewrites and removes `spine-*.md` pointers.
+- **Rules** — write them in `AGENTS.md`, under "Project-specific instructions". When instructions conflict,
+  the order is: the user's request, then `AGENTS.md`, then `.spine/rules/`.
+
+### Changing Spine itself
+
+To change a Spine rule, command, or skill, change it in the Spine clone and run `install` again (see
+[Contributing](#contributing)). An edit made directly under `.spine/` is overwritten by the next `install`,
+and until then `doctor` fails with `content differs from the installed version`.
 
 ## Updating
 

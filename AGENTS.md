@@ -132,7 +132,7 @@ PROJECT_ROOT/
 
 Updating a consumer project = running `python spine.py install <project>` again from the Spine clone.
 
-When the installer's behavior, options, or messages change, update the matching sections of [`README.md`](README.md) (Installation, Health checks, Troubleshooting) in the same delivery.
+When the installer's behavior, options, or messages change, update the matching sections of [`README.md`](README.md) (Installation, Extending your project, Health checks, Troubleshooting) in the same delivery.
 
 ---
 
