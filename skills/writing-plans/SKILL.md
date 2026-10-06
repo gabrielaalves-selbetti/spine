@@ -14,15 +14,15 @@ Write comprehensive implementation plans assuming the engineer has zero context 
 
 **Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
 
-**Save plans to:** `docs/memory/active_tasks/<sequential-number>-<descriptive-name>.md`
+**Save plans to:** `docs/memory/active_tasks/<task-id>-<descriptive-name>.md`
 
-**Conflict rule:** When used from `/spine-plan`, that command and [`templates/docs/memory/active_tasks/_task-template.md`](../../templates/docs/memory/active_tasks/_task-template.md) (consumer: `docs/memory/active_tasks/_task-template.md`) **take precedence**. This skill fills content; it does not redefine structure.
+**Conflict rule:** When used from `/spine-plan`, that command and `docs/memory/active_tasks/_task-template.md` **take precedence**. This skill fills content; it does not redefine structure.
 
 ## Before writing
 
-1. Read `_task-template.md` in the consumer project (`docs/memory/active_tasks/_task-template.md`).
+1. Read `docs/memory/active_tasks/_task-template.md`.
 2. Grep `docs/memory/ledger/learnings.md` and recent progress delivery log for related **tags** per `docs/governance/memory-tags-policy.md`.
-3. Assign the next sequential `NNN` by scanning `active_tasks/` and `completed_tasks/` (ignore `_task-template.md`).
+3. Get the tracker ID of the task (`/spine-plan` step 1). Never invent one and never number tasks locally. Make sure no file in `active_tasks/` or `completed_tasks/` already uses it.
 
 ## Document structure (mandatory)
 
@@ -30,14 +30,15 @@ Every plan **must** start with YAML frontmatter, then body sections in this orde
 
 ```yaml
 ---
-task_id: 007
+task_id: PROJ-123
 title: Human-readable title
 goal: One-line outcome
 status: PLANNING
+owner: person-responsible
 tags:
   - area/example
   - type/feature
-branch: feature/descriptive-name
+branch: feat/PROJ-123
 base: develop
 execution_skill: executing-plans
 created_at: YYYY-MM-DD
@@ -48,10 +49,10 @@ related_learnings: []
 ```
 
 ```markdown
-# 007-descriptive-name
+# PROJ-123-descriptive-name
 
 ## Discovery notes
-(When @grill-me ran — otherwise omit or leave brief.)
+(When discovery ran — otherwise omit or leave brief.)
 
 ## Objective
 [Expanded goal — architecture and approach belong here, not in a legacy header block.]
@@ -111,7 +112,7 @@ Each step is one action (2–5 minutes). Exact file paths always. Complete code 
 
 ## Normalizing native Plan drafts
 
-If input is a Cursor/native Plan draft with `**Goal:**`, `**Architecture:**`, or root-level `### Task N:`:
+If input is an IDE-native Plan draft with `**Goal:**`, `**Architecture:**`, or root-level `### Task N:`:
 
 - `goal` → frontmatter `goal`; details → `## Objective`
 - Architecture / tech stack → `## Objective` (subsections if needed)
@@ -120,26 +121,27 @@ If input is a Cursor/native Plan draft with `**Goal:**`, `**Architecture:**`, or
 
 ## GitFlow (Spine default)
 
-- `branch: feature/<descriptive-name>`
-- `base: develop`
+- `branch: <type>/<task-id>` — `<type>` is one of `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release`
+- `base: develop` (`production` for `hotfix`)
+- `owner:` the person responsible for the task
 - Do not create the branch during planning.
 
 ## Execution handoff
 
 When invoked from `/spine-plan`, after saving the task file:
 
-1. Complete the plan contract checklist (command step 5).
-2. Run contract validation (command step 8) — **execute** from project root; do not skip if repository search misses the script (`.spine` is gitignored):
+1. Complete the plan contract checklist (command step 6).
+2. Run contract validation (command step 9) — **execute** from project root:
 
    ```bash
-   python3 .spine/scripts/spine_validate.py task docs/memory/active_tasks/<file>.md
+   python .spine/spine.py doctor --task docs/memory/active_tasks/<file>.md
    ```
 
-   On Windows, if `python3` is unavailable, use `py -3` or `python`.
+   If `python` is unavailable, use `py -3`.
 
-   Fix structural errors and re-run until the script exits 0. If the script is missing, follow `/spine-plan` bridge mode (`bash .spine/scripts/update.sh`). This checks format consistency, not plan quality.
+   Fix structural errors and re-run until the script exits 0. If the script is missing, ask the user to run `python spine.py install` from their Spine clone. This checks format consistency, not plan quality.
 
-3. Stop at the `/spine-plan` approval gate (command step 9):
+3. Stop at the `/spine-plan` approval gate (command step 10):
 
    > Plan created at `docs/memory/active_tasks/<file>.md`. Can I execute?
 
@@ -147,10 +149,9 @@ Do **not** offer superpowers subagent/parallel-session handoffs. Execution start
 
 ## Remember
 
-- Reference domain skills with `@` syntax where relevant
 - Record `execution_skill` in frontmatter (no `@` prefix)
 - `/spine-plan` and `_task-template.md` override this skill on structure conflicts
 
 ## When to Use
 
-Use when `/spine-plan` step 2 invokes planning, or when you have requirements for a multi-step task before touching code.
+Use when `/spine-plan` step 3 invokes planning, or when you have requirements for a multi-step task before touching code.

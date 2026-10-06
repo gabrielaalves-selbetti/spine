@@ -1,29 +1,29 @@
 ---
-task_id: 000
+task_id: PROJ-000
 title: Task title (human-readable)
 goal: One-line outcome the task must achieve
 status: PLANNING
+owner: person-responsible
 tags:
   - type/feature
-branch: feature/descriptive-name
+branch: feat/PROJ-000
 base: develop
 execution_skill: executing-plans
-roadmap_idea:  # required when task originates from an Idea Bank ID (e.g., I3); otherwise leave empty
 created_at: YYYY-MM-DD
 updated_at: YYYY-MM-DD
 completed_at:
 related_learnings: []
 ---
 
-# 000-descriptive-name
+# PROJ-000-descriptive-name
 
-> Reference template only — not a numbered task. Copy structure when creating tasks via `/spine-plan`.
-> Only `_task-template.md` belongs under `templates/docs/memory/active_tasks/` (plus `.gitkeep` in seed).
+> Reference template only — not a task. Copy structure when creating tasks via `/spine-plan`.
+> `task_id` is the tracker ID; the file name is `<task_id>-<descriptive-name>.md` and the branch is `<type>/<task_id>`.
 > Do not use inline `**Status:**`, `**Branch:**`, or `superpowers:*` headers — metadata lives in frontmatter only.
 
 ## Discovery notes
 
-(When `@grill-me` ran: resolved decisions, MVP, out-of-scope, glossary/decision-log promotions.)
+(When discovery ran: resolved decisions, MVP, out-of-scope, glossary/decision-log promotions.)
 
 ## Objective
 

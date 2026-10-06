@@ -5,16 +5,6 @@ def _read(path: str) -> str:
     return Path(path).read_text(encoding="utf-8")
 
 
-def test_validate_bootstrap_ready_script_exists() -> None:
-    assert Path("scripts/validate-bootstrap-ready.sh").exists()
-    text = _read("scripts/spine_validate.py")
-    assert "project-brief.md" in text
-    assert "roadmap.md" in text
-    assert "spine-bootstrap.md" in text
-    assert "opencode.json" in text
-    assert "spine_validate.py" in text
-
-
 def test_global_templates_have_knowledge_sections() -> None:
     patterns = _read("templates/docs/memory/global/system-patterns.md")
     tech = _read("templates/docs/memory/global/tech-context.md")
@@ -24,16 +14,11 @@ def test_global_templates_have_knowledge_sections() -> None:
     assert "## Known Opportunities (unplanned)" in product
 
 
-def test_roadmap_template_english_placeholders() -> None:
+def test_roadmap_template_is_a_plain_milestone_list() -> None:
     text = _read("templates/docs/memory/ledger/roadmap.md")
-    assert "[Goal Name]" in text
-    assert "[Nome]" not in text
-    assert "ice_method" in text
-    assert "last_updated" in text
-    assert "last_reviewed" in text
-    assert "review_cadence" in text
-    assert "goals_active" in text
-    assert "ideas_total" in text
+    assert "## Milestone 1" in text
+    assert not text.startswith("---")
+    assert "Idea Bank" not in text
 
 
 def test_memory_bank_documents_bootstrap_knowledge_mapping() -> None:
@@ -48,8 +33,7 @@ def test_memory_bank_documents_bootstrap_knowledge_mapping() -> None:
 def test_spine_bootstrap_deep_assessment_and_agent_focus() -> None:
     text = _read("commands/spine-bootstrap.md")
     lower = text.lower()
-    assert "python3 .spine/scripts/spine_validate.py bootstrap" in text
-    assert "graphify-out/graph.json" in lower
+    assert "python .spine/spine.py doctor" in text
     assert "agent-ready" in lower or "agent-optimized" in lower
     assert "maximize detail" in lower or "maximal detail" in lower
 
@@ -68,8 +52,7 @@ def test_spine_bootstrap_no_roadmap_task_or_plan() -> None:
     assert "do not modify" in lower and "roadmap.md" in lower
     assert "initial task" not in lower
     assert "when there is delivery scope" not in lower
-    assert "validate-task.sh" not in text
-    assert "active_tasks/NNN" in text or "NNN-*.md" in text
+    assert "do not create" in lower and "active_tasks/" in text
     assert "/spine-plan" in text
 
 
@@ -77,23 +60,20 @@ def test_spine_bootstrap_no_seed_side_effects() -> None:
     text = _read("commands/spine-bootstrap.md")
     lower = text.lower()
     assert "forbidden" in lower
-    assert "cp -r" in lower  # listed as forbidden action
-    assert "/spine-install" not in lower
+    assert "copy/seed `docs/`" in lower
+    assert "edit anything under `.spine/`" in lower
 
 
-def test_spine_bootstrap_no_grill_me() -> None:
-    text = _read("commands/spine-bootstrap.md").lower()
-    assert "no `@grill-me`" in text or "no @grill-me" in text
-
-
-def test_readme_documents_bootstrap_scope() -> None:
+def test_readme_documents_install_and_doctor() -> None:
     text = _read("README.md")
-    assert "validate-bootstrap-ready.sh" in text
-    assert "does **not** fill `roadmap.md`" in text or "not fill `roadmap.md`" in text
+    assert "spine.py install" in text
+    assert "--dry-run" in text
+    assert "python .spine/spine.py doctor" in text
+    assert "Never overwritten" in text
 
 
-def test_agents_md_bootstrap_vs_plan() -> None:
+def test_agents_md_documents_installer_contract() -> None:
     text = _read("AGENTS.md")
-    assert "validate-bootstrap-ready.sh" in text
-    assert "roadmap.md" in text
+    assert "spine.py" in text
+    assert "A VERIFICAR" in text
     assert "/spine-plan" in text

@@ -8,7 +8,7 @@ Tag policy: `docs/governance/memory-tags-policy.md`
 
 ## LEARN-001 — Example incident slug
 
-**First seen:** 2026-01-15 | **Task:** 001-example-task
+**First seen:** 2026-01-15 | **Task:** PROJ-000-example-task
 **Tags:** area/api, type/incident
 
 **Symptoms:** Brief description of what users or tests observed.

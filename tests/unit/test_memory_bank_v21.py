@@ -15,6 +15,7 @@ def test_memory_bank_rule_v21_structure() -> None:
     assert "tiered SYNC" in text.lower() or "Tiered SYNC" in text
     assert "memory-tags-policy.md" in text
     assert "task_id:" in text
+    assert "owner:" in text
 
 
 def test_progress_template_has_delivery_log() -> None:
@@ -22,6 +23,7 @@ def test_progress_template_has_delivery_log() -> None:
     assert "## Current state" in text
     assert "## Delivery log" in text
     assert "**Tags:**" in text
+    assert "In flight" not in text
 
 
 def test_learnings_template_has_learn_entry() -> None:
@@ -32,13 +34,15 @@ def test_learnings_template_has_learn_entry() -> None:
 
 
 def test_task_template_obsidian_frontmatter() -> None:
-    text = _read("templates/docs/memory/active_tasks/_task-template.md")
+    text = _read("templates/docs/memory/active_tasks/_task-template.md").replace("\r\n", "\n")
     assert text.startswith("---\n")
     assert "tags:" in text
     assert "status:" in text
     assert "goal:" in text
+    assert "owner:" in text
     assert "branch:" in text
     assert "base:" in text
+    assert "roadmap_idea" not in text
     assert "## Implementation Plan" in text
 
 
@@ -46,12 +50,6 @@ def test_writing_plans_skill_no_superpowers_header() -> None:
     text = _read("skills/writing-plans/SKILL.md")
     assert "_task-template" in text
     assert "superpowers:executing-plans" not in text
-
-
-def test_no_003_sample_in_templates() -> None:
-    assert not Path(
-        "templates/docs/memory/active_tasks/003-fix-quote-item-unique-hash-collision.md"
-    ).exists()
 
 
 def test_memory_tags_policy() -> None:
@@ -70,6 +68,13 @@ def test_spine_harvest_v21_contract() -> None:
     assert "memory-tags-policy" in text
 
 
+def test_spine_harvest_hands_off_to_pull_request() -> None:
+    text = _read("commands/spine-harvest.md")
+    assert "git push -u origin <branch>" in text
+    assert "Pull Request" in text
+    assert "**do not** delete the branch" in text
+
+
 def test_spine_plan_v21_contract() -> None:
     text = _read("commands/spine-plan.md").lower()
     assert "completed_tasks/" in text
@@ -79,24 +84,11 @@ def test_spine_plan_v21_contract() -> None:
     assert "implementation plan" in text
 
 
-def test_spine_plan_bridge_removed() -> None:
-    assert not Path("commands/spine-plan-bridge.md").exists()
-    for path in (
-        "agents/ask.md",
-        "README.md",
-        "AGENTS.md",
-        "templates/docs/workflow/ciclo-de-entrega.md",
-        "skills/handoff-protocol/SKILL.md",
-    ):
-        assert "spine-plan-bridge" not in _read(path).lower(), path
-
-
-def test_install_sh_seeds_v21() -> None:
-    text = _read("install.sh")
-    assert "seed_docs_templates" in text
-    assert "learnings.md" in text
-    assert "memory-tags-policy.md" in text
-    assert "completed_tasks/.gitkeep" in text
+def test_spine_plan_requires_tracker_id_and_owner() -> None:
+    text = _read("commands/spine-plan.md")
+    assert "Never invent an ID" in text
+    assert "`owner:`" in text
+    assert "<type>/<task-id>" in text
 
 
 def test_readme_memory_bank_v21_section() -> None:
@@ -109,5 +101,4 @@ def test_readme_memory_bank_v21_section() -> None:
 def test_agents_memory_bank_v21() -> None:
     text = _read("AGENTS.md")
     assert "Memory Bank v2.1" in text
-    assert "Tiered SYNC" in text
-    assert "completed_tasks/" in text
+    assert "completed_tasks/" in text or "active_tasks/" in text

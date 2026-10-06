@@ -20,22 +20,22 @@ Load a Memory Bank task file, review critically, execute in batches, validate te
 
 ## Step 1: Load and review
 
-1. Read `docs/memory/active_tasks/NNN-descriptive-name.md`.
-2. Parse **YAML frontmatter first:** `branch`, `base`, `execution_skill`, `status`, `tags`, `goal`.
+1. Read `docs/memory/active_tasks/<task-id>-<descriptive-name>.md`.
+2. Parse **YAML frontmatter first:** `task_id`, `owner`, `branch`, `base`, `execution_skill`, `status`, `tags`, `goal`.
 3. Read body sections: Objective, Acceptance Criteria, Test Strategy.
 4. If `## Implementation Plan` exists, use Task/Step blocks as the execution checklist.
 5. If Implementation Plan is **missing** and there are **>3** acceptance criteria, stop and ask to extend the plan or proceed criterion-by-criterion.
 6. Review critically — raise blockers before coding.
 
-**Legacy fallback:** If frontmatter is missing, read inline `## Branch:` / `Suggested execution skill` and request plan correction to `_task-template.md` format.
+If frontmatter is missing or incomplete, stop and request plan correction to `_task-template.md` format.
 
 ## Step 2: Branch setup (GitFlow)
 
 Per [`commands/spine-execute.md`](../../commands/spine-execute.md):
 
-- `base` must be `develop`
-- `branch` must be `feature/<descriptive-name>`
-- Checkout base, pull, create or switch to feature branch
+- `branch` must be `<type>/<task-id>` (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release`)
+- `base` must be `develop` (`production` for `hotfix`)
+- Checkout base, pull, create or switch to the task branch
 - Do not proceed if branch policy is violated
 
 ## Step 3: Execute batch
@@ -64,7 +64,7 @@ After all work passes tests:
 1. Update frontmatter: `status: REVIEW`, bump `updated_at`
 2. Record in task body: **Tests executed** and **Test results**
 3. Stop — do **not** merge, harvest, or move to `completed_tasks/`
-4. User runs `/spine-harvest` for delivery log, learnings, and `git mv`
+4. User runs `/spine-harvest` for delivery log, learnings, `git mv`, and the Pull Request handoff
 
 **Do not use** `superpowers:finishing-a-development-branch`. Spine owns closure via `/spine-harvest`.
 

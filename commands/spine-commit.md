@@ -1,6 +1,5 @@
 ---
 description: Create a high-quality commit for current changes with safe branch checks
-agent: build
 ---
 
 # Slash Command: /spine-commit
@@ -8,10 +7,10 @@ Act as a Senior Software Engineer focused on clean history and safe Git flow dec
 
 Goal: commit the latest local changes with a clear message that explains why and impact.
 
-**Optional context (`$ARGUMENTS`):**
-- If `$ARGUMENTS` is empty, run in `commit-only` mode.
-- If `$ARGUMENTS` includes words like `push`, `commit and push`, or `commit+push`, run in `commit-and-push` mode.
-- If `$ARGUMENTS` is ambiguous, ask for confirmation before pushing.
+**Optional context (user arguments — the text passed with the command):**
+- If the arguments are empty, run in `commit-only` mode.
+- If the arguments include words like `push`, `commit and push`, or `commit+push`, run in `commit-and-push` mode.
+- If the arguments are ambiguous, ask for confirmation before pushing.
 
 1. **Pre-flight Context:**
    - Run:
@@ -26,14 +25,15 @@ Goal: commit the latest local changes with a clear message that explains why and
    - Detect current branch and whether `develop` exists:
      - `git rev-parse --abbrev-ref HEAD`
      - `git branch --list develop`
-   - If current branch is `main`, `master`, `production`, or `staging`:
+   - If current branch is `main`, `master`, `production`, `staging`, or `develop` (no direct commits on shared branches):
+     - Ask for the tracker ID of the work, then:
      - If `develop` exists:
-       - Ask confirmation to create `feature/<descriptive-name>` from `develop` and move work there before commit.
+       - Ask confirmation to create `<type>/<task-id>` from `develop` and move work there before commit.
      - If `develop` does not exist:
        - Ask confirmation and present options:
-         - Option A: create `feature/<descriptive-name>` from current branch and commit there.
-         - Option B: initialize `develop` from current branch, then create `feature/<descriptive-name>` from `develop`.
-   - If current branch starts with `feature/`, `hotfix/`, or `release/`, continue.
+         - Option A: create `<type>/<task-id>` from current branch and commit there.
+         - Option B: initialize `develop` from current branch, then create `<type>/<task-id>` from `develop`.
+   - If current branch starts with `feat/`, `fix/`, `docs/`, `refactor/`, `test/`, `chore/`, `hotfix/`, or `release/`, continue.
 
 3. **Commit Scope Discipline:**
    - Stage only files relevant to this delivery.
@@ -43,6 +43,7 @@ Goal: commit the latest local changes with a clear message that explains why and
 4. **Commit Message Quality (mandatory):**
    - Use Conventional Commits:
      - `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
+   - The prefix normally matches the branch type.
    - Subject line must be concise and meaningful.
    - Body must be explicit and useful for future audits:
      - `Why:` problem or intent
@@ -57,7 +58,7 @@ Goal: commit the latest local changes with a clear message that explains why and
      - `git show --name-only --oneline HEAD`
      - `git status --short --branch`
 
-6. **Optional Push (when requested via `$ARGUMENTS`):**
+6. **Optional Push (when requested via the arguments):**
    - If mode is `commit-and-push`:
      - Ensure upstream exists for current branch; if not, push with `-u`.
      - Push current branch to `origin`.
@@ -66,20 +67,16 @@ Goal: commit the latest local changes with a clear message that explains why and
        - tracking branch (`branch -vv` or equivalent)
    - If mode is `commit-only`, skip push.
 
-7. **Solo workflow (default for SPINE):**
-   - **Do not** recommend opening a Pull Request as the default next step. Solo developers should not be nudged into self-approval PR loops.
-   - After `git push`, GitHub (or similar) may print a `.../pull/new/...` URL. Treat it as **informational only** unless the user explicitly asks to open a PR or the project policy requires PR-based review.
-   - **After push** (when on a `feature/*`, `hotfix/*`, or `release/*` branch), prefer this sequence instead of PR:
-     1. Confirm push succeeded and branch is tracked on `origin`.
-     2. Ask **interactive validation questions** before any merge, for example:
-        - Were the tests or checks listed in the active task run? Anything else to run?
-        - Ready to merge `<current-branch>` into `develop` locally?
-     3. **Only after explicit human confirmation**, perform or describe the local merge (for example: `git checkout develop && git merge <branch>`). Do not merge without approval.
-   - If the user or `docs/` explicitly defines a **team / PR-required** workflow, then suggesting a PR link is acceptable; otherwise default to the solo path above.
+7. **Team workflow (default for SPINE):**
+   - Work reaches `develop` (or `production` for a `hotfix`) **only through a Pull Request** reviewed by the team.
+   - **Never** merge a work branch into `develop`, `staging`, `production`, or `main` locally, and never push directly to them.
+   - After `git push`, the next step is the Pull Request from the current branch into its base. If the remote prints a `.../pull/new/...` URL, show it to the user.
+   - Do not open the Pull Request with a tool unless the user asks for it.
+   - A task is closed with `/spine-harvest` (memory bank update + task move) **before** the Pull Request, so the review covers the memory bank changes too.
 
 8. **Mandatory Final Report:**
    - Final branch used.
    - Commit hash + full commit message.
    - Files included in the commit.
    - Push result (performed or skipped).
-   - **Next step (solo default):** summarize push outcome; offer **optional** merge into `develop` **only as questions** (validation first, then merge only if the user confirms). Do **not** list “open PR” as the recommended step unless the user asked for it or policy requires it.
+   - **Next step:** `/spine-harvest` if the task is still open; otherwise open the Pull Request into the base branch.
