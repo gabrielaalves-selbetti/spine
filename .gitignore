@@ -5,9 +5,8 @@
 .cursor/
 CLAUDE.md
 .claude/
-.opencode/
 .agents/
-/opencode.json
+.windsurf/
 
 # Python
 __pycache__/
