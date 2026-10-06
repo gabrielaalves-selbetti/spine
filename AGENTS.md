@@ -1,13 +1,13 @@
 # AGENTS.md — Spine Agent Operating Guide
 
-This file provides instructions for agentic coding agents working **on the Spine repository** or maintaining the Spine framework.
+This file provides instructions for agentic coding agents working **on the Spine repository** itself.
 
 **Scope:**
 - **This file** — operating guide for the Spine repo and framework maintenance.
-- **Consumer projects** — use `docs/memory/` plus 3 URL rules in `opencode.json`. Do **not** copy this file into consumer repos.
+- **Consumer projects** — get their own `AGENTS.md` from [`templates/AGENTS.md`](templates/AGENTS.md). Do **not** copy this file into consumer repos.
 - **Public setup guide** — [`README.md`](README.md).
 
-Spine is a workflow framework (agent OS) composed primarily of Markdown rules, Bash scripts, and Python test scaffolding.
+Spine is a workflow framework for coding agents working in teams: Markdown rules, commands, and skills, plus one Python script (`spine.py`) that installs them into a project.
 
 ---
 
@@ -15,31 +15,22 @@ Spine is a workflow framework (agent OS) composed primarily of Markdown rules, B
 
 ```
 spine/
-├── templates/              # Setup templates seeded by install.sh; filled via /spine-bootstrap
-│   ├── opencode.json       # Canonical consumer OpenCode config
-│   └── docs/
-│       ├── memory/
-│       │   ├── global/     # project-brief, product-context, domain-glossary, etc.
-│       │   ├── ledger/
-│       │   ├── active_tasks/
-│       │   └── completed_tasks/
-│       ├── governance/     # Skills policy (allowlist, trial criteria), ICE scoring guide
-│       ├── quality/        # Guardrails documentation
+├── spine.py                # The only installer: `install` and `doctor` (stdlib only, Python 3.9+)
+├── templates/
+│   ├── AGENTS.md           # Hub seeded once into consumer projects
+│   └── docs/               # Seeded once into consumer `docs/` (never overwritten)
+│       ├── memory/         # global/, ledger/, active_tasks/, completed_tasks/
+│       ├── governance/     # skills-policy, memory-tags-policy
+│       ├── quality/        # guardrails
 │       └── workflow/       # GitFlow and delivery cycle guides
-├── docs/                   # Local memory bank for Spine development (NOT versioned)
-├── commands/               # Slash-command templates (/spine-plan, /spine-bootstrap, etc.)
-├── rules/                  # Source-of-truth rules in .md (Cursor, Claude Code, OpenCode)
-├── skills/                 # Curated AI skill definitions (each has a SKILL.md)
-├── scripts/                # link-spine.sh, install-vendor.sh, update.sh, install-graphify.sh
-├── agents/                 # OpenCode agent definitions (e.g. ask.md)
-└── tests/                  # pytest scaffold (conftest.py + unit/ + integration/)
+├── commands/               # Command sources (/spine-plan, /spine-bootstrap, ...)
+├── rules/                  # Source-of-truth rules (01-core-protocol, 02-memory-bank, 03-code-quality)
+├── skills/                 # Workflow skills (each has a SKILL.md)
+├── docs/                   # Memory bank of the Spine repository itself (not shipped)
+└── tests/                  # pytest (conftest.py + unit/)
 ```
 
-**Important:**
-- `templates/` contains setup files for new consumer projects (versioned)
-- `docs/` is the local memory bank for Spine development (NOT versioned — see `.gitignore`)
-- `.gitignore` excludes: `docs/`, `.cursor/`, `CLAUDE.md`, local `opencode.json`
-- `AGENTS.md` is versioned in this repository
+`.gitignore` excludes local agent configs at the root: `.cursor/`, `.claude/`, `.agents/`, `.windsurf/`, `CLAUDE.md`.
 
 ---
 
@@ -49,20 +40,16 @@ Spine has no compiled artifact. Run tests from the Spine repo root:
 
 ```bash
 pytest tests/
-pytest -v tests/
 pytest -v -x tests/unit/test_<module>.py::test_<function_name>
-pytest --asyncio-mode=auto tests/
 ```
 
-### Linting and Formatting (expected in consumer projects)
+Try the installer against a scratch directory:
 
 ```bash
-isort .
-black .    # or: ruff format .
-mypy src/
+python spine.py install /path/to/scratch --ides claude,cursor --dry-run
+python spine.py install /path/to/scratch --ides claude,cursor
+python spine.py doctor /path/to/scratch
 ```
-
-No `pyproject.toml`, `Makefile`, or `tox.ini` exists at the Spine root; configure these in consumer projects.
 
 ---
 
@@ -70,8 +57,8 @@ No `pyproject.toml`, `Makefile`, or `tox.ini` exists at the Spine root; configur
 
 ### Language and Encoding
 - All code, comments, docstrings, commit messages, and generated file content must be in **English**.
-  _(Cursor rule: `.cursor/rules/english.mdc`)_
 - Exception: preserve user-provided literals (translations, UI copy) exactly as given.
+- All files are UTF-8 with LF line endings (`.gitattributes` enforces LF).
 
 ### Imports
 Order enforced by **isort**:
@@ -84,16 +71,15 @@ Never mix groups; use a blank line between each group.
 ### Type Annotations
 - **Strict by default**: annotate all function parameters and return types.
 - Avoid bare `Any`, `object`, or unparameterized `dict`; justify exceptions in a comment.
-- Prefer `dict[str, int]` over `Dict[str, int]` (Python 3.10+ built-in generics).
+- Prefer `dict[str, int]` over `Dict[str, int]`.
 - Local variables may rely on inference; public API boundaries must be explicit.
-- Use Pydantic v2 for external input validation (request bodies, env config, etc.).
 
 ### Naming Conventions
 - Functions / methods: `snake_case`
 - Variables: `snake_case`
 - Classes: `PascalCase`
 - Constants: `UPPER_SNAKE_CASE`
-- Test functions: behavior sentence (e.g., `test_create_task_returns_201_with_valid_data`)
+- Test functions: behavior sentence (e.g., `test_second_install_is_byte_identical_noop`)
 
 ### Docstrings
 - Google style, mandatory on all **public** functions, methods, and classes.
@@ -102,241 +88,67 @@ Never mix groups; use a blank line between each group.
 ### Formatting
 - Prefer short, cohesive functions; one logical concern per function.
 - No magic numbers — define named constants.
-- Line length: follow configured formatter (black/ruff default = 88).
 
 ---
 
-## 4. Architecture Rules
+## 4. `spine.py` contract
 
-_These rules apply to consumer **application** repositories, not Spine itself (Markdown/Bash/Python scaffold)._
+Changes to the installer must keep all of these true (the tests in `tests/unit/test_spine_install.py` and `test_spine_doctor.py` enforce them):
 
-- **Business logic lives exclusively in `services/`**. Routes and endpoints are thin dispatchers only.
-- Layer order: `models/` → `schemas/` → `services/` → `api/`
-- Repository pattern is optional — apply only when data-access complexity warrants it.
-- No new abstraction without at least **two real use cases**.
-- Prefer the simplest compliant solution; avoid speculative generality.
+- **Single file, standard library only, Python 3.9+.** No syntax or stdlib API newer than 3.9.
+- **No network, no subprocess, no writes outside the target project.** Every write goes through `safe_path`, which refuses paths that leave the target or pass through a symlink/junction.
+- **Real files only.** No symlinks are created anywhere.
+- **UTF-8, LF, no BOM** for every generated file, whatever the line endings of the source checkout.
+- **Idempotent.** Running `install` twice changes no byte. The manifest has sorted keys and no timestamp.
+- **`--dry-run`** computes the same plan and writes nothing.
+- **Three file classes:**
 
----
-
-## 5. Error Handling
-
-_Applies to consumer application code._
-
-- Use **specific exception types** — never `except Exception:` as a bare catch-all.
-- Define domain-specific exceptions in a dedicated `exceptions.py` module.
-- Raise in the service layer; catch and transform at the API/handler layer.
-- Error responses must include: programmatic code, human-readable message, field-level detail when applicable.
-- Structured logging at critical boundaries: API entry, DB failures, external calls.
-
----
-
-## 6. Development vs Consumer Installation
-
-### Development (this repository)
-
-- `docs/` is the local memory bank for Spine development (ignored by git)
-- `.cursor/`, `CLAUDE.md`, and root `opencode.json` are local dev configs (ignored by git)
-- Version changes in `templates/`, `commands/`, `skills/`, `rules/`, `AGENTS.md`
-- Use `docs/memory/` to track Spine's own development progress
-- `templates/opencode.json` is the canonical template for consumer projects
-
-### Consumer installation (v1.3 — project-only)
-
-Spine installs **per project only**. There is no global installer (`--global` and `--project` flags were removed in v1.3.0).
-
-**Setup flow (default — symlink wiring):**
-
-```bash
-# 1. Clone Spine once on the machine (outside consumer trees)
-git clone https://github.com/fjuste/spine.git ~/Workspace/ide/spine
-
-# 2. From consumer project root — link .spine
-bash ~/Workspace/ide/spine/scripts/link-spine.sh
-
-# 3. Full deterministic setup (all skills by default; --core for minimal 5-skill profile)
-bash .spine/install.sh
-bash .spine/install.sh --core
-
-# Hybrid: physical copies of applied trees; .spine stays symlink (gitignored)
-bash .spine/install.sh --copy
-bash .spine/install.sh --copy --update
-
-# 4. In the agent IDE (slash commands exist only after step 3)
-/spine-bootstrap  # deep assessment; fill docs/memory/ global + progress (agent-optimized context)
-/spine-plan       # first delivery task and plan
-```
-
-**Bootstrap vs plan:** `/spine-bootstrap` builds agent context (code + Graphify assessment, alterations, risks, opportunities in `global/`). It does not modify `roadmap.md` or create `active_tasks/`. `/spine-plan` owns delivery planning.
-
-Readiness: `python3 .spine/scripts/spine_validate.py bootstrap` (wrapper: `bash .spine/scripts/validate-bootstrap-ready.sh`)
-
-**Validators** live in `scripts/spine_validate.py` (cross-platform, stdlib-only Python 3.9+; subcommands `task`, `bootstrap`, `graphify`, `mkdocs`). The `scripts/validate-*.sh` files are thin wrappers kept for compatibility — change validation logic only in the Python module. On Windows use `py -3` or `python` when `python3` is unavailable.
-
-After step 2, only `bash .spine/install.sh` works from the terminal — `/spine-*` commands are not available until step 3 creates IDE command/workflow trees.
-
-**Update an existing consumer project (symlink or hybrid):**
-
-```bash
-bash .spine/scripts/update.sh
-# or explicitly:
-bash .spine/install.sh --update
-bash .spine/install.sh --copy --update
-```
-
-**Vendor mode (optional — copy files including `.spine/` directory, commit into the consumer repo):** for teams that need Spine itself versioned inside the consumer (no per-machine clone). Differs from `--copy`: vendor materializes `.spine/` as a real directory + `.spine-vendor` marker.
-
-```bash
-# Install (maintainer) — copies .spine + materializes IDE trees as real files
-bash ~/Workspace/ide/spine/scripts/install-vendor.sh --spine-dir=~/Workspace/ide/spine
-# Convert from existing symlink install:
-bash ~/Workspace/ide/spine/scripts/install-vendor.sh --force --spine-dir=~/Workspace/ide/spine
-
-# Commit vendored trees, then teammates use git clone / pull only
-# Update (overwrite from upstream clone):
-bash .spine/scripts/install-vendor.sh --update --spine-dir=~/Workspace/ide/spine
-```
-
-**Windows (native, no Bash/symlinks):** `install.ps1` at the Spine root is the PowerShell port of `install-vendor.sh` (same flags as `-Update`, `-Uninstall`, `-Force`, `-DryRun`, `-Core`, `-Skills`, `-Targets`; same `.spine-vendor` marker). Keep both scripts in sync when changing vendor behavior.
-
-```powershell
-powershell -ExecutionPolicy Bypass -File C:\tools\spine\install.ps1 -ProjectRoot C:\dev\my-project
-powershell -ExecutionPolicy Bypass -File C:\dev\my-project\.spine\install.ps1 -Update -ProjectRoot C:\dev\my-project -SpineDir C:\tools\spine
-```
-
-Full notes: README § **Optional: Vendor install** (incl. **Windows (PowerShell)**).
-
-#### What `install.sh` creates
-
-| File | Source | Versioned? (symlink mode) | Versioned? (`--copy`) |
-|---|---|---|---|
-| `docs/` | `templates/docs/` | Yes | Yes |
-| `opencode.json` | template merge | Yes | Yes |
-| `.cursor/`, `.claude/`, `.opencode/` | wiring | Yes (rel. symlinks) | Yes (real files) |
-| `.agents/skills|rules|workflows` | wiring | No (`.agents/` ignored) | Yes (real files) |
-| `.spine` | `link-spine.sh` | No (symlink) | No (symlink) |
-
-#### What `install-vendor.sh` / `install.ps1` creates
-
-| File | Source | Versioned in consumer project? |
+| Class | Paths in the target | Rule |
 |---|---|---|
-| `docs/` | `templates/docs/` (seed only; never overwrite existing) | Yes |
-| `opencode.json` | merge from template | Yes |
-| `.spine/`, `.agents/`, `.cursor/`, `.opencode/`, `.claude/`, `.spine-vendor` | Real file copies | Yes (vendor mode) |
+| Mirror | `.spine/**` | Always equals the source; stale files listed in the previous manifest are removed |
+| Pointer | per-IDE command files | Rewritten when missing or untouched; a local edit is kept (`SKIP`) unless `--force` |
+| Seed | `AGENTS.md`, `CLAUDE.md`, `docs/**` | Created only when missing; never overwritten, not even with `--force` |
 
-#### Consumer project structure (symlink wiring)
+- **IDE paths** live in one table, `IDE_LAYOUTS`. An entry stays `verified=False` (reported as `A VERIFICAR`) until its paths were checked by hand against the IDE.
+- `commands/spine-promote.md` is maintainer-only and listed in `INTERNAL_COMMANDS`; it must never be installed into a consumer project.
+
+---
+
+## 5. What ships to a consumer project
 
 ```
 PROJECT_ROOT/
-├── .spine                  → Spine repository (symlink)
-├── .agents/skills/         per-skill symlinks hub
-├── .agents/rules/          core rules (Antigravity)
-├── .agents/workflows/      commands as slash workflows (Antigravity)
-├── .cursor/rules/          core rule symlinks
-├── .cursor/commands/       → .spine/commands/
-├── .cursor/skills/         → .agents/skills/
-├── .opencode/commands/     → .spine/commands/
-├── .opencode/agents/       per-file symlinks to .spine/agents/
-├── .claude/skills/         → .agents/skills/
-├── opencode.json           (3 rule URLs + compaction)
-├── docs/memory/...         (memory bank)
-└── .graphifyignore         (optional — Graphify)
-└── docs/mkdocs/...         (optional — MkDocs public-facing docs)
+├── AGENTS.md                  seed — hub that points to .spine/rules/
+├── CLAUDE.md                  seed (Claude Code only) — "@AGENTS.md"
+├── .spine/                    mirror — single source of truth
+│   ├── spine.py               doctor / doctor --task
+│   ├── manifest.json
+│   ├── commands/  rules/  skills/
+├── docs/                      seed — memory bank, governance, quality, workflow
+└── <ide dir>/                 pointers — one thin file per command
 ```
 
-**Skill management:**
+Updating a consumer project = running `python spine.py install <project>` again from the Spine clone.
 
-```bash
-bash .spine/install.sh --list-skills
-bash .spine/install.sh --add-skill=grill-me
-bash .spine/install.sh --remove-skill=astro
-bash .spine/install.sh --skills=python-patterns,fastapi-pro
-bash .spine/install.sh --skills=all             # explicit all (default)
-bash .spine/install.sh --skills=core            # minimal 5-skill profile
-bash .spine/install.sh --update
-bash .spine/install.sh --uninstall
-bash .spine/install.sh --targets=cursor,opencode,claude,antigravity
-bash .spine/install.sh --copy --targets=cursor,opencode,claude,antigravity
-bash .spine/install.sh --with-graphify   # non-interactive Graphify (prompt: answer yes during install)
-bash .spine/install.sh --with-mkdocs     # non-interactive MkDocs (prompt: answer yes during install)
-```
+---
 
-**Core skills** (the `--core` profile):
+## 6. Delivery model the rules and commands implement
 
-- `writing-plans`
-- `executing-plans`
-- `test-driven-development`
-- `systematic-debugging`
-- `verification-before-completion`
+- **Team workflow** (4+ people): work reaches `develop` only through a Pull Request; `/spine-harvest` stops at `git push`.
+- **Task ID** is the tracker ID (`PROJ-123`); file `docs/memory/active_tasks/<task-id>-<name>.md`; mandatory `owner`.
+- **Branches:** `main`, `develop`, `staging`, `production`; work branches `<type>/<task-id>` with `<type>` in `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release`.
+- **Memory Bank v2.1:** canonical spec in `rules/02-memory-bank.md`; tags in `templates/docs/governance/memory-tags-policy.md`.
 
-**Trial skill (opt-in):** `grill-me` — conditional discovery before `/spine-plan`; sharpens domain language and promotes terms to `domain-glossary.md`. Install with `--add-skill=grill-me`.
+When a rule, command, skill, or template changes one of these, change the others and `validate_task` in `spine.py` in the same delivery.
 
-### Memory Bank v2.1 (consumer)
+### Commands
 
-Operational source of truth: `docs/memory/`. Canonical spec: `rules/02-memory-bank.md`. Tags: `docs/governance/memory-tags-policy.md`.
-
-```
-docs/memory/
-  global/           # Stable base
-  ledger/
-    roadmap.md
-    progress.md     # Current state + delivery log (append-only)
-    learnings.md    # LEARN-NNN recurrence registry
-  active_tasks/     # Open work only
-  completed_tasks/  # DONE (git mv at harvest)
-```
-
-**Task files:** Obsidian-style YAML frontmatter (`task_id`, `title`, `goal`, `status`, `tags`, `branch`, `base`, `roadmap_idea`, `created_at`, `updated_at`, …). Template: `templates/docs/memory/active_tasks/_task-template.md`.
-
-**Tiered SYNC:**
-
-| Tier | When | Read |
-|------|------|------|
-| Core | Every session | global 1–6, progress Current state, open `active_tasks/` |
-| Extended | Plan, harvest, ambiguous scope | `roadmap.md`, full delivery log |
-| On demand | Debugging, recurrence | `learnings.md`, `completed_tasks/` |
-
-**Harvest outcomes:** delivery log append, `learnings.md` when applicable, frontmatter `status: DONE`, `git mv` to `completed_tasks/`. When `roadmap_idea` is set, update Idea Bank Status (`Done` / still `In Progress`) and suggest `/spine-roadmap --review` for ICE re-score.
-
-### OpenCode configuration (consumer)
-
-Canonical template: `templates/opencode.json`
-
-- **3 instructions** (URL-based, opt-in per project):
-  - `01-core-protocol.md`
-  - `02-memory-bank.md`
-  - `03-code-quality.md`
-- **model** / **small_model** — default LLM (`provider/model-id` format)
-- **default_agent:** `ask` (read-only exploration first; switch to `build` for implementation)
-- **agent.ask** — read-only primary; default model variant (no override); `prompt: "{file:.spine/agents/ask.md}"`; deny `edit`
-- **agent.plan** / **agent.build** — `variant: medium` for balanced reasoning cost
-- **compaction:** `enabled: true`, `strategy: summarize`, `threshold: 16000`
-- **Never** add Spine `instructions` to global `~/.config/opencode/opencode.json`
-- Pin to `refs/heads/master` for latest, or `refs/tags/vX.Y.Z` for stability
-- Customize `model` / `variant` per [OpenCode models](https://opencode.ai/docs/models/) (`opencode models` CLI)
-
-### Optional tooling
-
-**Graphify** (code-structure layer — optional; tri-platform: Cursor, OpenCode, Claude Code):
-
-- Install CLI: `uv tool install graphifyy` (minimum recommended: 0.7.16)
-- Co-install: answer **yes** at Graphify prompt during `bash .spine/install.sh` (or `--update` when integration incomplete); non-interactive: `--with-graphify` or `bash .spine/scripts/update.sh --graphify-init`
-- Verify: `python3 .spine/scripts/spine_validate.py graphify` (wrapper: `validate-graphify-integration.sh`)
-- Uninstall platform artifacts: `bash .spine/install.sh --graphify-uninstall`
-- Refresh: `graphify update .`
-- Full guide: README § **Optional: Graphify**
-
-**Spine vs Graphify:** memory bank (`docs/memory/`) is source of truth for scope and delivery; Graphify maps source code via `GRAPH_REPORT.md` + `graphify query` (see `02-memory-bank.md` § Graphify Discovery Protocol). Co-install delegates platform hooks/plugins/rules to Graphify CLI; Spine orchestrates workflow and OpenCode `opencode.json` merge.
-
-**MkDocs** (public-facing documentation layer — optional):
-
-- Install CLI: `pip install mkdocs` (or `pip install mkdocs-material` for Material theme)
-- Co-install: answer **yes** at MkDocs prompt during `bash .spine/install.sh` (or `--update` when integration incomplete); non-interactive: `--with-mkdocs` or `bash .spine/scripts/update.sh --with-mkdocs`
-- Verify: `python3 .spine/scripts/spine_validate.py mkdocs` (wrapper: `validate-mkdocs-integration.sh`)
-- Uninstall: `bash .spine/install.sh --mkdocs-uninstall`
-- Preview: `mkdocs serve -f docs/mkdocs/mkdocs.yml`
-- Full guide: README § **Optional: MkDocs**
-
-**Spine vs MkDocs:** memory bank (`docs/memory/`) is source of truth for scope and delivery; MkDocs generates public-facing documentation from `docs/mkdocs/` source files. Agents follow the `documentation-driven-development` skill when MkDocs is active. Harvest verifies the build (step 3.6) without blocking delivery.
+- `/spine-bootstrap` — initial assessment and memory bank fill
+- `/spine-plan` — task plan in the memory bank (tracker ID required; conditional `grill-me` discovery)
+- `/spine-execute` — implement the active task with validation
+- `/spine-harvest` — consolidate learnings, close the task, hand off to a Pull Request
+- `/spine-commit` — commit with branch safety checks
+- `/spine-promote` — maintainer-only promotion cascade for this repository (not installed)
 
 ## headroom (Context Compression)
 
@@ -347,31 +159,3 @@ Rules:
 - When you need the original details later, call `headroom_retrieve` with the hash (optionally filtered by `query`)
 - Prefer compressing large `read`, `grep`, `glob`, `bash`, and web fetch results rather than keeping the full text in context
 - Do NOT compress small outputs (< ~2000 tokens) or content you will reference immediately in the next turn — the compression overhead is not worth it
-- Never paste full `graphify-out/graph.json` or other large JSON artifacts into context — compress first or query targeted slices
-
-### Slash commands
-
-Available in `commands/`:
-
-- `install.sh` — deterministic setup: symlinks, `docs/` seed, `opencode.json`, Graphify and MkDocs opt-in
-- `/spine-update` — safe refresh via `scripts/update.sh`
-- `/spine-bootstrap` — initial assessment and memory bank fill
-- `/spine-plan` — task plan in memory bank (native Plan draft as input; conditional `@grill-me` discovery)
-- `/spine-execute` — implement active task with validation
-- `/spine-harvest` — consolidate learnings and close task
-- `/spine-roadmap` — fill or update roadmap with GIST-informed Goals and ICE-scored Idea Bank
-- `/spine-commit` — commit with branch safety checks
-- `/spine-promote` — GitFlow branch promotion
-
-### Gitignore in consumer projects
-
-**Versioned:** `opencode.json`, `docs/`, `.graphifyignore`
-- `docs/mkdocs/mkdocs.yml` and `docs/mkdocs/*.md` source files (versioned); `docs/mkdocs/site/` (gitignored)
-
-**Machine-specific (gitignored):** `.spine` (symlink to local Spine clone); in default symlink wiring also `.agents/`. `graphify-out/cache/` (recommended).
-
-**Committable IDE trees:** `.cursor/`, `.claude/`, `.opencode/` — and with `--copy`, also `.agents/` (skills/rules/workflows as real files). `install.sh --update` strips obsolete ignores for those paths.
-
-**Vendor mode:** also commits `.spine/` as a real directory plus `.spine-vendor` (not gitignored).
-
-**Non-Spine projects** omit Spine URLs from `opencode.json` and do not run the install script. They remain free of Spine rules.
