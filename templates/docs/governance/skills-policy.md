@@ -2,62 +2,62 @@
 
 Tag policy for tasks, progress, and learnings: `docs/governance/memory-tags-policy.md`.
 
-## Objetivo
-Manter somente skills com valor recorrente no workflow da equipe.
+## Goal
+Keep only skills that bring recurring value to the team workflow.
 
-## Skills instaladas
+## Installed skills
 
-`python spine.py install` copia todas as skills do Spine para `.spine/skills/`. O agente lê `.spine/skills/<nome>/SKILL.md` quando um comando ou esta política indica a skill.
+`python spine.py install` copies every Spine skill into `.spine/skills/`. The agent reads `.spine/skills/<name>/SKILL.md` when a command or this policy points to the skill.
 
-### Core (sempre em uso)
+### Core (always in use)
 - `writing-plans`
 - `executing-plans`
 - `test-driven-development`
 - `systematic-debugging`
 - `verification-before-completion`
 
-### Workflow e Qualidade
+### Workflow and Quality
 - `gitflow`
 - `testing-guidelines`
 - `handoff-protocol`
-- `grill-me` (descoberta condicional — ver Diretriz Operacional: Planejamento)
+- `grill-me` (conditional discovery — see Operating Guideline: Planning)
 
-## Skills adicionais do projeto
-- Skills próprias do projeto ficam fora de `.spine/` (essa pasta é gerenciada pelo `spine.py`) e devem ser listadas aqui, com o caminho do `SKILL.md`, para serem usadas como `execution_skill`.
-- Critérios de entrada: uso recorrente no trabalho real, redução mensurável de retrabalho, risco ou tempo, e alinhamento com a stack principal do projeto.
-- Critérios de remoção: sem uso recorrente nos últimos 30 dias, sobreposição com skill já ativa, ou indução de overengineering em tarefas simples.
+## Additional project skills
+- Project-specific skills live outside `.spine/` (that folder is managed by `spine.py`) and must be listed here, with the path to their `SKILL.md`, to be usable as `execution_skill`.
+- Entry criteria: recurring use in real work, measurable reduction of rework, risk, or time, and alignment with the project's main stack.
+- Removal criteria: no recurring use in the last 30 days, overlap with an already active skill, or pushing simple tasks toward overengineering.
 
-## Diretriz Operacional: Planejamento
+## Operating Guideline: Planning
 
-Use esta regra para evitar ambiguidade entre descoberta e estruturação de planos:
+Use this rule to avoid ambiguity between discovery and plan structuring:
 
-- **Pipeline fixo:** `grill-me` (descoberta, condicional) → `writing-plans` (preenche `_task-template.md`, obrigatório) → gate `/spine-plan`.
-- **Contrato de tarefa:** frontmatter YAML + seções fixas; detalhe Task/Step opcional em `## Implementation Plan` (omitir se ≤3 critérios de aceite).
-- **Default simples:** escopo claro e single-domain → pular `grill-me`, ir direto para `writing-plans`.
-- **Escalar descoberta:** usar `grill-me` quando escopo for ambíguo, multi-domínio, ou houver decisões arquiteturais/segurança/schema/infra em aberto.
+- **Fixed pipeline:** `grill-me` (discovery, conditional) → `writing-plans` (fills `_task-template.md`, mandatory) → `/spine-plan` gate.
+- **Task contract:** YAML frontmatter + fixed sections; optional Task/Step detail in `## Implementation Plan` (omit when there are ≤3 acceptance criteria).
+- **Simple default:** clear, single-domain scope → skip `grill-me`, go straight to `writing-plans`.
+- **Escalate discovery:** use `grill-me` when the scope is ambiguous, multi-domain, or has open architecture/security/schema/infra decisions.
 
-### Quando usar `grill-me`
-- Escopo ambíguo ou amplo (ex.: "melhorar performance").
-- Múltiplos domínios na mesma entrega (ex.: backend + infra + UI).
-- Decisões arquiteturais ou de segurança ainda não resolvidas.
-- Opt-in explícito em `/spine-plan`: `grill me`, `grill:`, `grill -`, `grill with docs`, `grill:docs`, `stress-test`, `challenge this`.
-- Opt-in com documentação de domínio: `grill with docs` ou `grill:docs` — mesma skill, com expectativa de atualização inline de `domain-glossary.md` e `decision-log.md`.
+### When to use `grill-me`
+- Ambiguous or broad scope (e.g. "improve performance").
+- Multiple domains in the same delivery (e.g. backend + infra + UI).
+- Unresolved architecture or security decisions.
+- Explicit opt-in in `/spine-plan`: `grill me`, `grill:`, `grill -`, `grill with docs`, `grill:docs`, `stress-test`, `challenge this`.
+- Opt-in with domain documentation: `grill with docs` or `grill:docs` — same skill, expecting inline updates to `domain-glossary.md` and `decision-log.md`.
 
-### Quando pular `grill-me`
-- Escopo claro, entregável único, single-domain.
-- Opt-out explícito: `skip discovery`, `no grill`, `direct plan`.
+### When to skip `grill-me`
+- Clear scope, single deliverable, single domain.
+- Explicit opt-out: `skip discovery`, `no grill`, `direct plan`.
 
-### Regra de desempate (anti-overengineering)
-- Se o escopo já define MVP, out-of-scope e domínio principal, não use `grill-me`.
-- `grill-me` faz uma pergunta por vez; não escreva o plano completo até a descoberta terminar.
-- Registre decisões em `## Discovery notes` no arquivo de tarefa ativa antes de `writing-plans`.
-- **Promoção de conhecimento:** decisões de escopo da tarefa → `## Discovery notes`; termos canônicos de domínio → `domain-glossary.md`; decisões arquiteturais (critério triplo: difícil reverter, surpreendente sem contexto, trade-off real) → `decision-log.md`.
+### Tie-breaker (anti-overengineering)
+- If the scope already defines MVP, out-of-scope, and main domain, do not use `grill-me`.
+- `grill-me` asks one question at a time; do not write the full plan until discovery ends.
+- Record decisions in `## Discovery notes` in the active task file before `writing-plans`.
+- **Knowledge promotion:** task scope decisions → `## Discovery notes`; canonical domain terms → `domain-glossary.md`; architecture decisions (triple criterion: hard to reverse, surprising without context, real trade-off) → `decision-log.md`.
 
-### Relação com outras skills de workflow
-- **`writing-plans`:** sempre após descoberta (ou após skip). Preenche `_task-template.md` (frontmatter + seções); Task/Step só em `## Implementation Plan`.
-- **`executing-plans`:** lê frontmatter e Implementation Plan; para em `REVIEW` — `/spine-harvest` fecha a entrega.
-- **`handoff-protocol`:** aplica-se quando a task troca de responsável ou de agente; não substitui descoberta de escopo.
+### Relation to other workflow skills
+- **`writing-plans`:** always after discovery (or after skipping it). Fills `_task-template.md` (frontmatter + sections); Task/Step only in `## Implementation Plan`.
+- **`executing-plans`:** reads the frontmatter and Implementation Plan; stops at `REVIEW` — `/spine-harvest` closes the delivery.
+- **`handoff-protocol`:** applies when the task changes owner or agent; does not replace scope discovery.
 
-## Sincronização em Projetos Consumidor
+## Syncing in Consumer Projects
 
-Este arquivo é semeado em `docs/governance/skills-policy.md` pelo `python spine.py install` e nunca é sobrescrito depois. Ao atualizar o Spine, revisar manualmente as diferenças em relação a `templates/docs/governance/skills-policy.md` no clone do Spine e incorporar o que for relevante.
+This file is seeded into `docs/governance/skills-policy.md` by `python spine.py install` and is never overwritten afterwards. When updating Spine, manually review the differences against `templates/docs/governance/skills-policy.md` in the Spine clone and adopt what is relevant.

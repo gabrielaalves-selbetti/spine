@@ -1,38 +1,38 @@
-# Ciclo de Entrega (Enxuto)
+# Delivery Cycle (Lean)
 
-## Objetivo
-Executar tarefas com previsibilidade e qualidade, mantendo documentação mínima e útil.
+## Goal
+Run tasks predictably and with quality, keeping documentation minimal and useful.
 
-## Ciclo Padrão
-1. **Intake da tarefa**
-   - Partir de um ticket no tracker da equipe (o ID do ticket identifica a task).
-   - Definir objetivo, escopo, responsável e critério de aceite.
-2. **Plano rápido**
-   - Definir abordagem em poucas linhas.
-   - Definir plano de testes (positivo, negativo, regressão).
-3. **Execução em `<tipo>/<task-id>`**
-   - Implementar o mínimo necessário para entregar valor.
-4. **Validação**
-   - Executar testes definidos.
-   - Validar impacto em áreas relacionadas.
-5. **Registro (harvest v2.1)**
-   - Acrescentar a entrada no delivery log de `docs/memory/ledger/progress.md` (com **Tags**); atualizar Current state quando houver bloqueio ou próximo passo do time.
-   - Registrar recorrências em `docs/memory/ledger/learnings.md` quando houver incidente ou retrabalho.
-   - Registrar decisões em `docs/memory/global/decision-log.md`.
-   - Mover task concluída: `git mv active_tasks/ → completed_tasks/` (frontmatter `status: DONE`).
+## Standard Cycle
+1. **Task intake**
+   - Start from a ticket in the team tracker (the ticket ID identifies the task).
+   - Define goal, scope, owner, and acceptance criteria.
+2. **Quick plan**
+   - Describe the approach in a few lines.
+   - Define the test plan (positive, negative, regression).
+3. **Execution on `<type>/<task-id>`**
+   - Implement the minimum needed to deliver value.
+4. **Validation**
+   - Run the planned tests.
+   - Check the impact on related areas.
+5. **Record (harvest v2.1)**
+   - Append the entry to the delivery log in `docs/memory/ledger/progress.md` (with **Tags**); update Current state when there is a blocker or a next step for the team.
+   - Record recurrences in `docs/memory/ledger/learnings.md` when there was an incident or rework.
+   - Record decisions in `docs/memory/global/decision-log.md`.
+   - Move the finished task: `git mv active_tasks/ → completed_tasks/` (frontmatter `status: DONE`).
 6. **Pull Request**
-   - Push da branch e Pull Request para `develop`, com revisão da equipe.
-7. **Promoção**
+   - Push the branch and open a Pull Request to `develop`, reviewed by the team.
+7. **Promotion**
    - `develop` -> `staging` -> `production` -> `main`.
 
-## Definição de Pronto
-- Critério de aceite atendido.
-- Testes previstos executados.
-- Memory-bank atualizado.
-- Pull Request aberto para a branch base.
-- Sem pendência crítica não documentada.
+## Definition of Done
+- Acceptance criteria met.
+- Planned tests executed.
+- Memory bank updated.
+- Pull Request open against the base branch.
+- No undocumented critical pending item.
 
-## Guard Rail Anti-Overengineering
-- Não criar abstração nova sem 2 casos reais.
-- Não adicionar ferramenta nova sem substituir algo ou reduzir custo/tempo.
-- Priorizar solução simples antes de solução “genérica”.
+## Anti-Overengineering Guardrail
+- Do not create a new abstraction without 2 real cases.
+- Do not add a new tool unless it replaces something or reduces cost/time.
+- Prefer the simple solution before the "generic" one.

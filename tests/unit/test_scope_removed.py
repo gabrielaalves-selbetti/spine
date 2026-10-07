@@ -79,6 +79,6 @@ def test_skill_catalog_is_the_workflow_set() -> None:
 
 
 def test_promotion_cascade_branches_are_still_documented() -> None:
-    text = (REPO_ROOT / "templates/docs/workflow/gitflow-operacional.md").read_text(encoding="utf-8")
+    text = (REPO_ROOT / "templates/docs/workflow/gitflow.md").read_text(encoding="utf-8")
     for branch in ("`main`", "`develop`", "`staging`", "`production`"):
         assert branch in text

@@ -1,55 +1,55 @@
-# Gitflow Operacional
+# Operational GitFlow
 
-## Objetivo
-Padronizar um ciclo simples, seguro e repetível para desenvolvimento em equipe, sem overengineering.
+## Goal
+Standardize a simple, safe, and repeatable cycle for team development, without overengineering.
 
-## Branches Oficiais
-- `main`: branch canônica do código.
-- `develop`: integração contínua de entregas concluídas.
-- `staging`: validação pré-produção.
-- `production`: espelho do que está em produção.
+## Official Branches
+- `main`: canonical code branch.
+- `develop`: continuous integration of finished deliveries.
+- `staging`: pre-production validation.
+- `production`: mirror of what is in production.
 
-## Branches Temporárias
-Toda branch de trabalho segue `<tipo>/<task-id>`, em que `<task-id>` é o ID do ticket no tracker da equipe.
+## Temporary Branches
+Every work branch follows `<type>/<task-id>`, where `<task-id>` is the ticket ID in the team tracker.
 
-- `feat/<task-id>`: nova funcionalidade.
-- `fix/<task-id>`: correção não urgente.
-- `docs/<task-id>`, `refactor/<task-id>`, `test/<task-id>`, `chore/<task-id>`: demais tipos de trabalho (mesmo vocabulário dos Conventional Commits).
-- `hotfix/<task-id>`: correção urgente de produção.
-- `release/<task-id>`: estabilização para entrega.
+- `feat/<task-id>`: new feature.
+- `fix/<task-id>`: non-urgent fix.
+- `docs/<task-id>`, `refactor/<task-id>`, `test/<task-id>`, `chore/<task-id>`: other kinds of work (same vocabulary as Conventional Commits).
+- `hotfix/<task-id>`: urgent production fix.
+- `release/<task-id>`: stabilization for delivery.
 
-## Fluxo Padrão de Entrega
-1. Criar `<tipo>/<task-id>` a partir de `develop`.
-2. Implementar com teste (ou plano de teste) antes do Pull Request.
-3. Atualizar memory-bank v2.1 na própria branch (`progress.md` delivery log, `learnings.md`, `decision-log.md`; task em `completed_tasks/` após harvest).
-4. Abrir Pull Request de `<tipo>/<task-id>` para `develop`; o merge acontece após revisão da equipe.
-5. Promover `develop` para `staging`.
-6. Validar checklist de release.
-7. Promover `staging` para `production`.
-8. Sincronizar `production` com `main`.
+## Standard Delivery Flow
+1. Create `<type>/<task-id>` from `develop`.
+2. Implement with a test (or test plan) before the Pull Request.
+3. Update memory bank v2.1 on the branch itself (`progress.md` delivery log, `learnings.md`, `decision-log.md`; task in `completed_tasks/` after harvest).
+4. Open a Pull Request from `<type>/<task-id>` to `develop`; the merge happens after team review.
+5. Promote `develop` to `staging`.
+6. Run the release checklist.
+7. Promote `staging` to `production`.
+8. Sync `production` with `main`.
 
-## Fluxo de Hotfix
-1. Criar `hotfix/<task-id>` a partir de `production` (ou `main` se for o espelho de produção).
-2. Corrigir + criar teste de regressão.
-3. Merge em `production` e `main`.
-4. Reaplicar em `develop` para evitar divergência.
+## Hotfix Flow
+1. Create `hotfix/<task-id>` from `production` (or `main` if it mirrors production).
+2. Fix + add a regression test.
+3. Merge into `production` and `main`.
+4. Reapply on `develop` to avoid divergence.
 
-## Regras de Segurança
-- Sem commit direto em `main`/`production`/`staging`/`develop`.
-- Sem merge local de branch de trabalho em `develop`: a integração é por Pull Request.
-- Toda entrega precisa de evidência de teste.
-- Toda entrega precisa atualizar memory-bank.
-- Se não há critério de aceite claro, a tarefa não inicia.
-- Toda task tem um responsável (`owner`) e um ID de tracker.
+## Safety Rules
+- No direct commits to `main`/`production`/`staging`/`develop`.
+- No local merge of a work branch into `develop`: integration goes through a Pull Request.
+- Every delivery needs test evidence.
+- Every delivery must update the memory bank.
+- Without clear acceptance criteria, the task does not start.
+- Every task has an `owner` and a tracker ID.
 
-## Convenções de Nome
-- Funcionalidade: `feat/PROJ-123`
-- Correção: `fix/PROJ-456`
+## Naming Conventions
+- Feature: `feat/PROJ-123`
+- Fix: `fix/PROJ-456`
 - Hotfix: `hotfix/PROJ-789`
 - Release: `release/PROJ-800`
 
-## Checklist de Promoção (staging -> production)
-- Testes do escopo executados.
-- Regressão mínima executada.
-- Memory-bank atualizado.
-- Aprendizado de ciclo registrado.
+## Promotion Checklist (staging -> production)
+- Scope tests executed.
+- Minimum regression executed.
+- Memory bank updated.
+- Cycle learnings recorded.

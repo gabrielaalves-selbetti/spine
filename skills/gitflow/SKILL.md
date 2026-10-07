@@ -43,4 +43,4 @@ date_added: "2026-04-29"
 `<type>/<task-id>` → `develop` → `staging` → `production` → `main`
 
 ## Reference
-Full operational guide: `docs/workflow/gitflow-operacional.md`
+Full operational guide: `docs/workflow/gitflow.md`

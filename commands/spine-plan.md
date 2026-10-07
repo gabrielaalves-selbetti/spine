@@ -55,7 +55,7 @@ Act as a Senior Software Architect. Follow the instructions provided in the user
    - Record in frontmatter as `execution_skill: <skill-name>` (without `@` prefix).
 
 5. **Task Plan in the Memory Bank:**
-   - **GitFlow is mandatory (not optional):** every plan must follow the branch conventions in `docs/workflow/gitflow-operacional.md`.
+   - **GitFlow is mandatory (not optional):** every plan must follow the branch conventions in `docs/workflow/gitflow.md`.
    - **Mandatory branch policy:** `<type>/<task-id>` as execution branch, where `<type>` is one of `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release` — pick the one that matches the nature of the work (same vocabulary as Conventional Commits). Base is `develop`; for `hotfix` it is `production`. Never create the branch during planning.
    - Ensure `docs/memory/active_tasks/` exists.
    - Create: `docs/memory/active_tasks/<task-id>-<descriptive-name>.md`
