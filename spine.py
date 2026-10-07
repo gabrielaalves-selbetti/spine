@@ -604,11 +604,54 @@ def _frontmatter_value(frontmatter: str, key: str) -> str | None:
     return match.group(1).strip().strip("\"'")
 
 
+def _strip_comment(text: str) -> str:
+    quote = ""
+    for index, char in enumerate(text):
+        if quote:
+            if char == quote:
+                quote = ""
+        elif char in "\"'":
+            quote = char
+        elif char == "#" and (index == 0 or text[index - 1] in " \t"):
+            return text[:index].rstrip()
+    return text.rstrip()
+
+
+def _split_flow_items(text: str) -> list[str]:
+    items: list[str] = []
+    current: list[str] = []
+    quote = ""
+    for char in text:
+        if quote:
+            quote = "" if char == quote else quote
+        elif char in "\"'":
+            quote = char
+        elif char == ",":
+            items.append("".join(current))
+            current = []
+            continue
+        current.append(char)
+    items.append("".join(current))
+    return [item.strip().strip("\"'").strip() for item in items if item.strip().strip("\"'").strip()]
+
+
 def _count_tags(frontmatter: str) -> int:
-    block = re.search(r"^tags:[ \t]*\n((?:[ \t]+.*(?:\n|$))*)", frontmatter, flags=re.MULTILINE)
-    if not block:
+    match = re.search(r"^tags:[ \t]*(.*)$", frontmatter, flags=re.MULTILINE)
+    if not match:
         return 0
-    return len(re.findall(r"^[ \t]+- ", block.group(1), flags=re.MULTILINE))
+    inline = _strip_comment(match.group(1))
+    if inline.startswith("["):
+        flow = inline
+        if "]" not in flow:
+            tail = frontmatter[match.end():]
+            flow += " " + _strip_comment(tail.split("]", 1)[0].replace("\n", " ")) + "]"
+        return len(_split_flow_items(flow[1:].split("]", 1)[0]))
+    if inline:
+        return 0
+    block = re.match(r"((?:[ \t]*-(?:[ \t].*)?\n?|[ \t]+.*\n?|[ \t]*#.*\n?)*)", frontmatter[match.end() + 1:])
+    lines = block.group(1).split("\n") if block else []
+    items = (_strip_comment(line) for line in lines if re.match(r"^[ \t]*-[ \t]", line + " "))
+    return sum(1 for item in items if item.lstrip()[1:].strip())
 
 
 def _validate_task_frontmatter(task_file: Path, frontmatter: str, report: Report) -> None:

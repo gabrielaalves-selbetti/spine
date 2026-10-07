@@ -316,6 +316,26 @@ def test_tag_count_ignores_other_lists(spine: ModuleType, tmp_path: Path) -> Non
     assert spine.validate_task(_task(tmp_path, other_list)).passed
 
 
+BLOCK_TAGS = "tags:\n  - type/feature\n  - area/tooling\n"
+
+
+def _with_tags(tags: str) -> str:
+    return VALID_TASK.replace(BLOCK_TAGS, tags)
+
+
+def test_inline_tags_are_counted(spine: ModuleType, tmp_path: Path) -> None:
+    assert spine.validate_task(_task(tmp_path, _with_tags("tags: [infra, mdm]\n"))).passed
+    assert spine.validate_task(_task(tmp_path, _with_tags('tags: ["a, b", c] # note\n'))).passed
+    assert spine.validate_task(_task(tmp_path, _with_tags("tags: [a,\n  b]\n"))).passed
+    assert not spine.validate_task(_task(tmp_path, _with_tags("tags: []\n"))).passed
+    assert not spine.validate_task(_task(tmp_path, _with_tags("tags: [a, b, c, d, e, f]\n"))).passed
+
+
+def test_block_tags_accept_zero_indent_and_comments(spine: ModuleType, tmp_path: Path) -> None:
+    assert spine.validate_task(_task(tmp_path, _with_tags("tags:\n- a\n- b # note\n"))).passed
+    assert not spine.validate_task(_task(tmp_path, _with_tags("tags:\n"))).passed
+
+
 def test_missing_frontmatter_and_sections_fail(spine: ModuleType, tmp_path: Path) -> None:
     report = spine.validate_task(_task(tmp_path, "# PROJ-123-example\n\nNo contract here.\n"))
 
