@@ -336,6 +336,19 @@ def test_block_tags_accept_zero_indent_and_comments(spine: ModuleType, tmp_path:
     assert not spine.validate_task(_task(tmp_path, _with_tags("tags:\n"))).passed
 
 
+def test_trailing_comment_is_not_part_of_the_value(spine: ModuleType, tmp_path: Path) -> None:
+    commented = VALID_TASK.replace("base: develop", "base: develop # why").replace(
+        "owner: maria.silva", "owner: maria.silva # lead"
+    )
+    empty_owner = VALID_TASK.replace("owner: maria.silva", "owner: # nobody")
+
+    report = spine.validate_task(_task(tmp_path, commented))
+
+    assert report.passed, _text(report)
+    assert report.warnings == 0
+    assert not spine.validate_task(_task(tmp_path, empty_owner)).passed
+
+
 def test_missing_frontmatter_and_sections_fail(spine: ModuleType, tmp_path: Path) -> None:
     report = spine.validate_task(_task(tmp_path, "# PROJ-123-example\n\nNo contract here.\n"))
 

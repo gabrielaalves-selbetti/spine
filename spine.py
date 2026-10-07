@@ -601,7 +601,7 @@ def _frontmatter_value(frontmatter: str, key: str) -> str | None:
     match = re.search(rf"^{key}:[ \t]*(.*)$", frontmatter, flags=re.MULTILINE)
     if not match:
         return None
-    return match.group(1).strip().strip("\"'")
+    return _strip_comment(match.group(1)).strip("\"'")
 
 
 def _strip_comment(text: str) -> str:
