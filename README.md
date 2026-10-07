@@ -289,7 +289,8 @@ like the rest, so teammates get them with `git pull`.
    frontmatter. `/spine-execute` does not use a skill the policy does not list.
 
 The nine Spine skills are not registered as native IDE skills. Agents read them from
-`.spine/skills/<name>/SKILL.md` when a command or the policy calls for them.
+`.spine/skills/<name>/SKILL.md` when a command or the policy calls for them. Authoring artifacts kept in the Spine
+repo (`CREATION-LOG.md`, `test-*.md`, shell scripts, `.ts` examples) are not installed.
 
 ### Adding a subagent
 
