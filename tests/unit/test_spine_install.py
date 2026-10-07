@@ -63,6 +63,44 @@ def test_internal_command_is_not_installed(spine: ModuleType, fake_source: Path,
     assert not [path for path in snapshot(target) if "spine-promote" in path]
 
 
+AUTHORING_ARTIFACTS = ("CREATION-LOG.md", "test-pressure.md", "find-polluter.sh", "example.ts")
+
+
+def _add_authoring_artifacts(source: Path) -> None:
+    skill = source / "skills" / "writing-plans"
+    for name in AUTHORING_ARTIFACTS:
+        (skill / name).write_bytes(b"artifact\n")
+    (skill / "testing-notes.md").write_bytes(b"# Notes\n")
+
+
+def test_skill_authoring_artifacts_are_not_installed(spine: ModuleType, fake_source: Path, target: Path) -> None:
+    _add_authoring_artifacts(fake_source)
+
+    spine.install(fake_source, target, ["claude"])
+
+    files = snapshot(target)
+    manifest = (target / ".spine" / "manifest.json").read_text(encoding="utf-8")
+    assert ".spine/skills/writing-plans/testing-notes.md" in files
+    for name in AUTHORING_ARTIFACTS:
+        assert f".spine/skills/writing-plans/{name}" not in files
+        assert name not in manifest
+
+
+def test_previously_installed_authoring_artifact_is_removed(
+    spine: ModuleType, fake_source: Path, target: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _add_authoring_artifacts(fake_source)
+    monkeypatch.setattr(spine, "EXCLUDED_SKILL_PATTERNS", ())
+    spine.install(fake_source, target, ["claude"])
+    assert (target / ".spine" / "skills" / "writing-plans" / "CREATION-LOG.md").exists()
+
+    monkeypatch.undo()
+    spine.install(fake_source, target, ["claude"])
+
+    for name in AUTHORING_ARTIFACTS:
+        assert not (target / ".spine" / "skills" / "writing-plans" / name).exists()
+
+
 def test_second_install_is_byte_identical_noop(spine: ModuleType, fake_source: Path, target: Path) -> None:
     spine.install(fake_source, target, ["claude", "windsurf"])
     before = snapshot(target)
