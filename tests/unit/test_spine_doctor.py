@@ -349,6 +349,21 @@ def test_trailing_comment_is_not_part_of_the_value(spine: ModuleType, tmp_path: 
     assert not spine.validate_task(_task(tmp_path, empty_owner)).passed
 
 
+def test_multiline_scalar_values(spine: ModuleType, tmp_path: Path) -> None:
+    folded = VALID_TASK.replace("goal: Prove the validator works", "goal: >\n  Prove the validator\n  works\n")
+    quoted = VALID_TASK.replace("title: Example task", 'title: "Example\n  task"')
+    plain = VALID_TASK.replace("title: Example task", "title: Example\n  task")
+    owner_block = VALID_TASK.replace("owner: maria.silva", "owner: |\n  maria.silva")
+    empty_block = VALID_TASK.replace("owner: maria.silva", "owner: >\n")
+
+    for content in (folded, quoted, plain, owner_block):
+        report = spine.validate_task(_task(tmp_path, content))
+        assert report.passed, _text(report)
+    assert not spine.validate_task(_task(tmp_path, empty_block)).passed
+    assert spine._frontmatter_value("goal: >\n  a\n  b\nx: 1", "goal") == "a b"
+    assert spine._frontmatter_value('t: "a\n  b"\nx: 1', "t") == "a b"
+
+
 def test_missing_frontmatter_and_sections_fail(spine: ModuleType, tmp_path: Path) -> None:
     report = spine.validate_task(_task(tmp_path, "# PROJ-123-example\n\nNo contract here.\n"))
 

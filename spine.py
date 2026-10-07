@@ -597,11 +597,45 @@ def _frontmatter(content: str) -> str | None:
     return content[3:].split("\n---", 1)[0]
 
 
+BLOCK_SCALAR_RE = re.compile(r"([|>])[+-]?[0-9]?[+-]?(?:[ \t]+#.*)?")
+
+
+def _continuation_lines(lines: list[str], start: int, plain: bool) -> list[str]:
+    collected: list[str] = []
+    for line in lines[start:]:
+        text = line.strip()
+        if line[:1] not in (" ", "\t") and text:
+            break
+        if plain and (not text or text.startswith(("#", "- "))):
+            break
+        if text:
+            collected.append(text)
+    return collected
+
+
 def _frontmatter_value(frontmatter: str, key: str) -> str | None:
-    match = re.search(rf"^{key}:[ \t]*(.*)$", frontmatter, flags=re.MULTILINE)
-    if not match:
-        return None
-    return _strip_comment(match.group(1)).strip("\"'")
+    lines = frontmatter.split("\n")
+    prefix = f"{key}:"
+    for index, line in enumerate(lines):
+        if not line.startswith(prefix):
+            continue
+        rest = line[len(prefix):].strip()
+        block = BLOCK_SCALAR_RE.fullmatch(rest)
+        if block:
+            parts = _continuation_lines(lines, index + 1, plain=False)
+            return ("\n" if block.group(1) == "|" else " ").join(parts)
+        if rest[:1] in ("'", '"') and rest.count(rest[0]) == 1:
+            parts = [rest]
+            for extra in lines[index + 1:]:
+                parts.append(extra.strip())
+                if rest[0] in extra:
+                    break
+            return _strip_comment(" ".join(parts)).strip("\"'")
+        value = _strip_comment(rest)
+        if value and rest[0] not in ("'", '"'):
+            value = " ".join([value] + _continuation_lines(lines, index + 1, plain=True))
+        return value.strip("\"'")
+    return None
 
 
 def _strip_comment(text: str) -> str:
