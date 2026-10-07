@@ -21,6 +21,7 @@ agents and slash commands rely on these prefixes.
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import hashlib
 import json
 import os
@@ -44,6 +45,8 @@ SOURCE_DIRS = ("commands", "rules", "skills", "templates")
 CORE_RULES = ("01-core-protocol.md", "02-memory-bank.md", "03-code-quality.md")
 # Maintainer-only commands that must never reach a consumer project.
 INTERNAL_COMMANDS = ("spine-promote.md",)
+# Skill authoring artifacts and scripts that must never reach a consumer project.
+EXCLUDED_SKILL_PATTERNS = ("CREATION-LOG.md", "test-*.md", "*.sh", "*.ts")
 IGNORED_DIR_NAMES = (".git", "__pycache__", "node_modules")
 
 POINTER_MARKER = "<!-- spine:pointer"
@@ -372,6 +375,11 @@ def render_pointer(command_name: str, command_text: str, layout: IdeLayout) -> s
     )
 
 
+def is_shipped_skill_file(path: Path) -> bool:
+    """True when a skill file is installed (not an authoring artifact or script)."""
+    return not any(fnmatch.fnmatchcase(path.name, pattern) for pattern in EXCLUDED_SKILL_PATTERNS)
+
+
 def collect_mirror(source: Path) -> dict[str, bytes]:
     """Files that make up the managed ``.spine/`` tree, keyed by target path."""
     files: dict[str, bytes] = {}
@@ -379,7 +387,7 @@ def collect_mirror(source: Path) -> dict[str, bytes]:
         files[f"{SPINE_DIR}/commands/{name}"] = read_source(source / "commands" / name)
     for path in sorted((source / "rules").glob("*.md")):
         files[f"{SPINE_DIR}/rules/{path.name}"] = read_source(path)
-    for path in source_files(source / "skills"):
+    for path in filter(is_shipped_skill_file, source_files(source / "skills")):
         files[f"{SPINE_DIR}/{path.relative_to(source).as_posix()}"] = read_source(path)
     files[f"{SPINE_DIR}/{Path(__file__).name}"] = read_source(Path(__file__).resolve())
     files[GITATTRIBUTES_REL] = GITATTRIBUTES_CONTENT.encode("utf-8")
