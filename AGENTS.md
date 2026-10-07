@@ -139,7 +139,7 @@ When the installer's behavior, options, or messages change, update the matching 
 
 ## 6. Delivery model the rules and commands implement
 
-- **Team workflow** (4+ people): work reaches `develop` only through a Pull Request; `/spine-harvest` stops at `git push`.
+- **Team workflow** (4+ people): work reaches the base branch (`base_branch` in the `integrations.md` seed, default `develop`) only through a Pull Request; `/spine-harvest` stops at `git push` and `/spine-pr` opens the draft.
 - **Task ID** is the tracker ID (`PROJ-123`); file `docs/memory/active_tasks/<task-id>-<name>.md`; mandatory `owner`.
 - **Branches:** `main`, `develop`, `staging`, `production`; work branches `<type>/<task-id>` with `<type>` in `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release`.
 - **Memory Bank v2.1:** canonical spec in `rules/02-memory-bank.md`; tags in `templates/docs/governance/memory-tags-policy.md`.
@@ -153,6 +153,7 @@ When a rule, command, skill, or template changes one of these, change the others
 - `/spine-execute` — implement the active task with validation
 - `/spine-harvest` — consolidate learnings, close the task, hand off to a Pull Request
 - `/spine-commit` — commit with branch safety checks
+- `/spine-pr` — open the draft Pull Request linked to the tracker item; `publish` takes it out of draft and moves the item to the configured state (needs a GitHub, Azure DevOps, or GitLab MCP server, or the matching CLI; settings in `templates/docs/governance/integrations.md`)
 - `/spine-promote` — maintainer-only promotion cascade for this repository (not installed)
 
 ## headroom (Context Compression)

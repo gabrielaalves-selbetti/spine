@@ -27,7 +27,7 @@ into a project as real, committable files: no Bash, no PowerShell, no symlinks, 
 - **Delivery workflow** — plan, execute with tests, harvest, Pull Request.
 - **Memory bank** (`docs/memory/`) — context, decisions, progress, and tasks, shared through git.
 - **Rules** — three short files every agent reads, reached from the project's `AGENTS.md`.
-- **Commands** — `/spine-bootstrap`, `/spine-plan`, `/spine-execute`, `/spine-harvest`, `/spine-commit`.
+- **Commands** — `/spine-bootstrap`, `/spine-plan`, `/spine-execute`, `/spine-harvest`, `/spine-commit`, `/spine-pr`.
 - **Skills** — nine workflow skills loaded on demand.
 - **One-file installer** — `spine.py` installs, updates, and checks a project; running it twice changes nothing.
 
@@ -36,6 +36,8 @@ into a project as real, committable files: no Bash, no PowerShell, no symlinks, 
 - Python 3.9 or newer, standard library only (`python --version`; `py -3` also works on Windows).
 - A local copy of this repository (git clone or unpacked `.zip`).
 - Nothing else: no admin rights, no Developer Mode, no package installs.
+- Optional, for `/spine-pr`: an MCP server for GitHub, Azure DevOps, or GitLab in your IDE (or the `gh`, `az`, or
+  `glab` CLI). See [Pull Requests and tracker integration](#pull-requests-and-tracker-integration).
 
 ## Quick start
 
@@ -113,7 +115,7 @@ my-project/
 │   └── skills/                   workflow skills
 ├── docs/                         created once; never overwritten
 │   ├── memory/                   global/, ledger/, active_tasks/, completed_tasks/
-│   ├── governance/  quality/  workflow/
+│   ├── governance/  quality/  workflow/   (governance/integrations.md: tracker, repository, base branch)
 ├── .claude/commands/spine-*.md   thin pointers to .spine/commands/
 └── .cursor/commands/spine-*.md   thin pointers to .spine/commands/
 ```
@@ -183,6 +185,7 @@ a note for them. The paths live in one table (`IDE_LAYOUTS` in `spine.py`).
 | `/spine-execute` | Implement an active task with tests |
 | `/spine-harvest` | Close the task, update the memory bank, hand off to a Pull Request |
 | `/spine-commit` | Commit with branch safety checks |
+| `/spine-pr` | Open the draft Pull Request linked to the tracker item; `/spine-pr publish` marks it ready |
 
 Each IDE gets one thin pointer file per command; the full instructions live in `.spine/commands/`. If the IDE
 does not show a command, open its instructions file there and follow it.
@@ -192,10 +195,12 @@ does not show a command, open its instructions file there and follow it.
 1. **Ticket** — every task starts from a ticket in your tracker. Its ID (for example `PROJ-123`) is the task ID.
 2. **`/spine-plan PROJ-123 <goal>`** — writes `docs/memory/active_tasks/PROJ-123-<name>.md` with an `owner`,
    acceptance criteria, and a test strategy, then validates it.
-3. **`/spine-execute <task file>`** — syncs `develop`, creates the branch `<type>/<task-id>`, implements test-first.
+3. **`/spine-execute <task file>`** — syncs the base branch (`develop` by default), creates the branch `<type>/<task-id>`, implements test-first.
 4. **`/spine-harvest <task file>`** — updates the memory bank, moves the task to `completed_tasks/`, commits,
    pushes, and stops.
-5. **Pull Request** — the branch reaches `develop` only through a reviewed Pull Request.
+5. **`/spine-pr`** — opens the Pull Request as a draft, linked to the tracker item.
+6. **`/spine-pr publish`** — takes it out of draft and moves the item to the configured state. The branch reaches
+   the base only through a Pull Request reviewed and merged by the team.
 
 Branches: `main`, `develop`, `staging`, `production`, and work branches `<type>/<task-id>` where `<type>` is one of
 `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release`. Promotion goes
@@ -213,7 +218,9 @@ flowchart TD
     tests --> harvest["/spine-harvest task-file"]
     harvest --> done["Memory bank updated, task moved to completed_tasks/ (status DONE)"]
     done --> push["Commit and git push"]
-    push --> pr["Pull Request reviewed and merged into develop"]
+    push --> draft["/spine-pr: draft Pull Request linked to the ticket"]
+    draft --> publish["/spine-pr publish: ready for review, ticket moved to publish_state"]
+    publish --> pr["Pull Request reviewed and merged into develop by the team"]
 ```
 
 Promotion between environments:
@@ -224,6 +231,35 @@ flowchart LR
     staging --> production["production"]
     production --> main["main"]
 ```
+
+### Pull Requests and tracker integration
+
+`/spine-pr` is the only step that talks to systems outside git. **It needs an MCP server for GitHub, Azure
+DevOps, or GitLab** configured in the IDE; when the tracker is a different product (for example Jira with
+GitHub), add an MCP server for the tracker too. Without one, it falls back to the matching CLI (`gh`, `az` with
+the `azure-devops` extension, or `glab`) and says so in one line. Without either, it prints a title and
+description ready to paste into the web UI.
+
+Fill `docs/governance/integrations.md` in the project once:
+
+| Setting | Example |
+|---|---|
+| Tracker and repository | `azure-devops`, `github`, `gitlab` (`jira` for the tracker) |
+| MCP server and tools | the server name as configured in the IDE, and the tools to read items and create Pull Requests |
+| CLI fallback | `gh`, `az`, `glab` |
+| Base branch and forbidden targets | `base_branch: dev`, `forbidden_targets: [main]` |
+| State on publish and forbidden states | `publish_state: Waiting`, `forbidden_states: [Homologate, Done]` |
+
+Credentials stay in the MCP server or CLI configuration, never in that file. `base_branch` is also the base that
+`/spine-plan` writes into tasks and that `doctor --task` expects.
+
+What the agent does and never does (rule `01-core-protocol.md`, External tools):
+
+- Asks for confirmation before every write: creating the Pull Request, publishing it, moving the item.
+- Never works around a refusal, a permission rule, or a guard by switching from MCP to the CLI; it explains and asks.
+- Never opens a Pull Request into a forbidden target and never sets a state other than `publish_state`.
+- Never approves, votes, completes, abandons, enables auto-complete, or bypasses branch policies.
+- Never puts personal data or credentials in a Pull Request.
 
 ### Memory Bank v2.1
 
@@ -334,7 +370,8 @@ python .spine/spine.py doctor --task docs/memory/active_tasks/PROJ-123-social-lo
 `doctor` checks that `.spine/` is a real directory that matches its manifest, that files are UTF-8 without BOM,
 that every selected IDE has one pointer per command, that the memory bank seed files exist, that `AGENTS.md`
 references `.spine/rules`, and that no two tasks share a `task_id`. `--task` validates one task file against
-the task contract.
+the task contract; it expects `base` to be `base_branch` from `TARGET/docs/governance/integrations.md` (default
+`develop`; `production` for `hotfix`).
 
 Exit code 0 means OK (warnings allowed); 1 means at least one error. `OK:` lines go to stdout;
 `ERROR:`, `WARNING:`, and `NOTE:` lines go to stderr.
@@ -355,6 +392,7 @@ Exit code 0 means OK (warnings allowed); 1 means at least one error. `OK:` lines
 | `generated file(s) have CRLF line endings` | Git converts line endings on checkout. | Add `* text=auto eol=lf` to the project's `.gitattributes`. |
 | `.gitignore ignores a path Spine expects to be committed` | `.spine` or an IDE directory is ignored. | Remove that line from `.gitignore` and commit the files. |
 | `duplicate task_id ...` | Two task files share one tracker ID. | Keep one file per task; delete or rename the other. |
+| `base is not <branch>` | The task's `base` differs from `base_branch` in `docs/governance/integrations.md`. | Fix the task's `base`, or set `base_branch` and run `doctor --task` from the project root. |
 
 ## Migrating from the shell installers
 
