@@ -21,24 +21,26 @@ date_added: "2026-04-29"
 | `main` | Canonical branch; stable mirror of `production` | `production` | — |
 | `staging` | QA and pre-production | `develop` | `production` |
 | `develop` | Integration branch | `main`/`production` | `staging` |
-| `feature/*` | New features | `develop` | `develop` |
+| `feat/*`, `fix/*`, `docs/*`, `refactor/*`, `test/*`, `chore/*` | Task work | `develop` | `develop` |
+| `release/*` | Release stabilization | `develop` | `develop` |
 | `hotfix/*` | Urgent fixes | `production` | `production`, `main`, `develop` |
 
 ## Rules
-1. Every change starts with: `git checkout develop && git pull && git checkout -b feature/<name>`
+1. Every change starts with: `git checkout develop && git pull && git checkout -b <type>/<task-id>`
 2. Atomic commits — one logical change per commit
 3. Never push directly to `production`, `main`, `staging`, or `develop`
 4. Never `git push --force`
-5. Merge to `develop` requires a Pull Request (or solo validation)
-6. Memory bank must be updated when promoting `develop` to `staging`
+5. Merge to `develop` requires a Pull Request reviewed by the team
+6. Memory bank must be updated in the task branch, before the Pull Request
 
 ## Naming
-- Features: `feature/<descriptive-name>` (e.g., `feature/social-login`)
-- Hotfixes: `hotfix/<descriptive-name>` (e.g., `hotfix/fix-null-pointer`)
-- Releases: `release/vX.Y.Z`
+- Work branches: `<type>/<task-id>`, where `<task-id>` is the tracker ID (e.g., `feat/PROJ-123`, `fix/PROJ-456`)
+- `<type>` follows Conventional Commits: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
+- Hotfixes: `hotfix/<task-id>` (e.g., `hotfix/PROJ-789`)
+- Releases: `release/<task-id>` (the tracker ID of the release ticket)
 
 ## Promotion Flow
-`feature/*` → `develop` → `staging` → `production` → `main`
+`<type>/<task-id>` → `develop` → `staging` → `production` → `main`
 
 ## Reference
-Full operational guide: `docs/workflow/gitflow-operacional.md`
+Full operational guide: `docs/workflow/gitflow.md`

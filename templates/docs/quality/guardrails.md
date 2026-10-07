@@ -1,34 +1,34 @@
-# Guard Rails de Qualidade
+# Quality Guardrails
 
-## Objetivo
-Garantir controle de entrega com testes e prevenção de regressão.
+## Goal
+Keep deliveries under control with tests and regression prevention.
 
-## Regra Base
-Toda tarefa deve incluir:
-1. Plano de execução.
-2. Plano de testes.
-3. Evidência de execução dos testes.
+## Base Rule
+Every task must include:
+1. Execution plan.
+2. Test plan.
+3. Evidence that the tests ran.
 
-## Plano de Testes Mínimo por Tarefa
-- **Caso positivo**: caminho esperado funciona.
-- **Caso negativo**: entrada inválida/erro controlado.
-- **Regressão**: valida que comportamento antigo crítico não quebrou.
+## Minimum Test Plan per Task
+- **Positive case**: the expected path works.
+- **Negative case**: invalid input / controlled error.
+- **Regression**: confirms critical existing behavior did not break.
 
-## Tipos de Teste (aplicar conforme escopo)
-- Unitário: regra de negócio e funções críticas.
-- Integração: serviços, banco e contratos.
-- E2E/funcional: fluxos críticos de usuário (quando aplicável).
-- Smoke pós-release: sanidade em produção/staging.
+## Test Types (apply according to scope)
+- Unit: business rules and critical functions.
+- Integration: services, database, and contracts.
+- E2E/functional: critical user flows (when applicable).
+- Post-release smoke: sanity check in production/staging.
 
-## Gate de Merge
-- Critério de aceite atendido.
-- Plano de testes executado.
-- Sem falhas críticas abertas.
-- Memory-bank atualizado com aprendizado.
+## Merge Gate
+- Acceptance criteria met.
+- Test plan executed.
+- No open critical failures.
+- Memory bank updated with learnings.
 
-## Registro de Aprendizado Obrigatório
-Para incidentes, bugs e retrabalhos, registrar em `docs/memory/ledger/learnings.md` (entrada `LEARN-NNN` com **Tags** per `docs/governance/memory-tags-policy.md`):
-- Causa-raiz.
-- Como detectar cedo.
-- Teste que evita recorrência.
-- Regra operacional adicionada/ajustada.
+## Mandatory Learning Record
+For incidents, bugs, and rework, record in `docs/memory/ledger/learnings.md` (a `LEARN-NNN` entry with **Tags** per `docs/governance/memory-tags-policy.md`):
+- Root cause.
+- How to detect it early.
+- Test that prevents recurrence.
+- Operating rule added/adjusted.

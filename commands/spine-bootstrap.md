@@ -1,19 +1,18 @@
 ---
-description: Deep project assessment and agent-optimized memory bank fill after install.sh; optional $ARGUMENTS for briefing
-agent: build
+description: Deep project assessment and agent-optimized memory bank fill after spine.py install
 ---
 
 # Slash Command: /spine-bootstrap
 
 Act as the project's Initial Assessment Architect.
 
-**Goal:** Build a complete, **agent-ready** project context layer. Deep assessment of source code and Graphify (when present), then fill memory bank documents with maximal detail for **agent consumption** (tiered SYNC), not human storytelling.
+**Goal:** Build a complete, **agent-ready** project context layer. Deep assessment of the source code, then fill memory bank documents with maximal detail for **agent consumption** (tiered SYNC), not human storytelling.
 
 **Bootstrap is not planning.** Do not create active tasks, plans, or modify `roadmap.md`. Delivery starts with `/spine-plan`.
 
-**Optional context (`$ARGUMENTS`):** Non-empty free text = project briefing (domain, stack, constraints, stakeholders, links). Highest priority when filling files; do not contradict existing valid content.
+**Optional context (user arguments):** Non-empty free text passed with the command = project briefing (domain, stack, constraints, stakeholders, links). Highest priority when filling files; do not contradict existing valid content.
 
-**Precondition:** `bash .spine/install.sh` completed (symlinks, seeded `docs/`, `opencode.json`).
+**Precondition:** `python spine.py install` completed for this project (`.spine/`, seeded `docs/`, `AGENTS.md`, command pointers).
 
 ---
 
@@ -22,26 +21,25 @@ Act as the project's Initial Assessment Architect.
 Run from project root:
 
 ```bash
-python3 .spine/scripts/spine_validate.py bootstrap
+python .spine/spine.py doctor
 ```
 
-Cross-platform Python 3.9+ (on Windows, if `python3` is unavailable, use `py -3` or `python`). `bash .spine/scripts/validate-bootstrap-ready.sh` remains a thin wrapper.
+Standard library only, Python 3.9+ (if `python` is unavailable, use `py -3`).
 
-**On success:** proceed to Step 1.
+**On success:** proceed to Step 1. Report any `WARNING:` and `NOTE:` lines in the final summary.
 
-**On failure (bridge mode):**
+**On failure:**
 
 1. Stop assessment.
-2. Ask: "Setup incomplete. Run `bash .spine/install.sh` from the project root now?"
-3. If yes: user runs install in terminal (not a slash command), reload IDE, re-run the script.
-4. If no: list missing artifacts from script output and stop.
+2. List the `ERROR:` lines from the output.
+3. Ask the user to run `python spine.py install <project-root>` from their Spine clone in a terminal, reload the IDE, and retry.
 
 **Forbidden (agent must never):**
 
-- Copy/seed `docs/` (`cp -R`, downloads, creating missing template files)
-- Run `install.sh` from the agent
-- Modify [`docs/memory/ledger/roadmap.md`](../../templates/docs/memory/ledger/roadmap.md)
-- Create or modify `docs/memory/active_tasks/NNN-*.md` (numbered tasks)
+- Copy/seed `docs/` (downloads, creating missing template files)
+- Edit anything under `.spine/` (managed by `spine.py`)
+- Modify `docs/memory/ledger/roadmap.md`
+- Create or modify task files in `docs/memory/active_tasks/`
 
 **Re-bootstrap:** Safe to re-run. Idempotent enrichment — replace placeholders, append non-conflicting detail, preserve valid existing content.
 
@@ -53,10 +51,9 @@ Goal: **complete project understanding**. Do not write memory bank files until a
 
 **Discovery order:**
 
-1. `$ARGUMENTS` (if non-empty)
-2. **Graphify** when `graphify-out/graph.json` exists: follow `02-memory-bank.md` **Graphify Discovery Protocol** — read `GRAPH_REPORT.md`, run `graphify query` for architecture/modules/entry points/integrations, confirm with targeted file reads. Run `python3 .spine/scripts/spine_validate.py graphify` and report per-IDE status in the summary.
-3. **Source and configs:** README, manifests, CI, infra, entry points, layer structure, tests, env patterns
-4. Existing memory bank (re-bootstrap) — conflicts → **Gaps**, do not silently overwrite
+1. User arguments (if non-empty)
+2. **Source and configs:** README, manifests, CI, infra, entry points, layer structure, tests, env patterns
+3. Existing memory bank (re-bootstrap) — conflicts → **Gaps**, do not silently overwrite
 
 **Assessment must cover:**
 
@@ -70,14 +67,14 @@ Goal: **complete project understanding**. Do not write memory bank files until a
 | **Risks** (fragile integrations, missing tests, deprecated deps) | `tech-context.md` § Known Risks |
 | **Opportunities** (unplanned improvements, not scheduled work) | `product-context.md` § Known Opportunities (unplanned) |
 | Scope, goals, boundaries | `project-brief.md`, `product-context.md` |
-| Git default branch vs Spine GitFlow (`develop` + `feature/*`) | `tech-context.md`, summary **Gaps** if mismatch |
-| Graphify status (active / stale / absent; check `graphify-out/`, `graphify-out/graph.json`, `.graphifyignore`) | `system-patterns.md`, summary |
+| Git branches vs Spine GitFlow (`develop`, `staging`, `production`, `main` + `<type>/<task-id>`) | `tech-context.md`, summary **Gaps** if mismatch |
+| Task tracker in use and its ID format | `tech-context.md` |
 
-**Hunt signals:** Graphify clusters; grep `TODO|FIXME|HACK|override|custom`; payment/checkout/auth/shipping directories; `$ARGUMENTS`.
+**Hunt signals:** grep `TODO|FIXME|HACK|override|custom`; payment/checkout/auth/shipping directories; user arguments.
 
 **Depth bar:** If any global section would still read like `[Fill in]` after Step 2, assessment was insufficient — explore deeper.
 
-**No `@grill-me`:** Unresolved domain ambiguity → **Gaps** + recommend `/spine-plan` with discovery triggers when delivery starts.
+**No discovery interview:** Unresolved domain ambiguity → **Gaps** + recommend `/spine-plan` with discovery triggers when delivery starts.
 
 ---
 
@@ -87,7 +84,7 @@ Goal: **complete project understanding**. Do not write memory bank files until a
 
 | Principle | Guidance |
 |-----------|----------|
-| Structure | Predictable headings per `02-memory-bank.md` Core SYNC |
+| Structure | Predictable headings per `.spine/rules/02-memory-bank.md` Core SYNC |
 | Specificity | Concrete paths, modules, config files, CLI commands |
 | Glossary | Term + definition + code location hint |
 | Architecture | Layer map, request/job flow, key files/classes |
@@ -105,7 +102,7 @@ Goal: **complete project understanding**. Do not write memory bank files until a
 |--------|--------|
 | Placeholder (`[Fill in]`, empty section, template boilerplate) | Replace with detailed inferred content |
 | Valid project-specific content already present | Preserve; append only non-conflicting detail |
-| Conflict (repo vs `$ARGUMENTS` vs existing doc) | Do not overwrite; record in **Gaps** |
+| Conflict (repo vs user arguments vs existing doc) | Do not overwrite; record in **Gaps** |
 | `domain-glossary.md` | Add terms; never delete existing entries |
 | `decision-log.md` | Append bootstrap baseline entry (date, baseline established, key facts + WHY) |
 
@@ -114,11 +111,11 @@ Goal: **complete project understanding**. Do not write memory bank files until a
 - `docs/memory/global/project-brief.md`
 - `docs/memory/global/product-context.md` (incl. § Known Opportunities (unplanned))
 - `docs/memory/global/domain-glossary.md`
-- `docs/memory/global/system-patterns.md` (preserve Graphify section; incl. § Project-Specific Alterations)
+- `docs/memory/global/system-patterns.md` (incl. § Project-Specific Alterations)
 - `docs/memory/global/tech-context.md` (incl. § Known Risks)
 - `docs/memory/global/decision-log.md`
 
-If a new section is missing in an older consumer template, add the section during fill.
+If a section is missing in an older seeded file, add the section during fill.
 
 ---
 
@@ -126,13 +123,13 @@ If a new section is missing in an older consumer template, add the section durin
 
 **In scope:**
 
-- `docs/memory/ledger/progress.md` — update **Current state** only: bootstrap complete, memory bank baseline ready, no active delivery tasks; **never wipe Delivery log**
+- `docs/memory/ledger/progress.md` — update **Current state** only: bootstrap complete, memory bank baseline ready; **never wipe Delivery log**
 - `docs/memory/ledger/learnings.md` — leave empty unless repo evidence supports an incident-style entry; flag in **Gaps** if file missing after install
 
 **Out of scope:**
 
-- **`docs/memory/ledger/roadmap.md` — do not modify** (seed template; use `/spine-roadmap`)
-- **`active_tasks/NNN-*.md` — do not create**
+- **`docs/memory/ledger/roadmap.md` — do not modify** (maintained by the team)
+- **Task files in `active_tasks/` — do not create**
 
 ---
 
@@ -140,19 +137,20 @@ If a new section is missing in an older consumer template, add the section durin
 
 Always include:
 
-- **Assessment coverage:** Graph queries, key dirs, configs explored; confidence level
+- **Assessment coverage:** key dirs and configs explored; confidence level
 - **Memory bank files filled:** Each updated `global/*` and ledger file with one-line depth note
 - **Counts:** alterations documented, risks listed, opportunities captured
 - **Intentionally untouched:** `roadmap.md` (not bootstrap scope)
 - **Created vs. updated vs. preserved**
 - **Gaps:** Credentials, business rules, stakeholder intent, branch policy exceptions, unresolved domain terms
-- **Setup status:** `spine_validate.py bootstrap` result
-- **Graphify status:** active / partial / absent; per-IDE integration (Cursor mdc, OpenCode plugin, Claude hook); whether `GRAPH_REPORT.md` was read and sample `graphify query` commands run; suggest README § Optional: Graphify if medium/large repo without Graphify
-- **GitFlow note:** default branch vs Spine target (`develop` + `feature/*`)
-- **Next step:** `/spine-plan <goal>` — bootstrap does not produce plans or tasks
+- **Setup status:** `spine.py doctor` result, including warnings and `UNVERIFIED` notes
+- **GitFlow note:** existing branches vs Spine target (`develop`, `staging`, `production`, `main` + `<type>/<task-id>`)
+- **Next step:** `/spine-plan <task-id> <goal>` — bootstrap does not produce plans or tasks
 - **Re-bootstrap:** idempotent enrichment only
 
-If user asks for a plan, task, or roadmap: "Bootstrap builds agent context only. Use `/spine-plan` for delivery planning. Use `/spine-roadmap` to structure the roadmap."
+Memory bank changes made by bootstrap are regular file changes: they reach the team through a branch and a Pull Request like any other delivery.
+
+If user asks for a plan or task: "Bootstrap builds agent context only. Use `/spine-plan` for delivery planning."
 
 ---
 
@@ -165,14 +163,14 @@ If user asks for a plan, task, or roadmap: "Bootstrap builds agent context only.
 | Known risk | `tech-context.md` § Known Risks | Bootstrap |
 | Opportunity (unplanned) | `product-context.md` § Known Opportunities | Bootstrap |
 | Incident / recurrence | `learnings.md` | `/spine-harvest` only |
-| Scheduled milestone | `roadmap.md` | `/spine-roadmap` |
+| Scheduled milestone | `roadmap.md` | Team, by hand |
 
 ---
 
 ## Acceptance criteria (command behavior)
 
-- [ ] Runs `spine_validate.py bootstrap` before assessment
-- [ ] Deep assessment of source code and Graphify (when present) before writing
+- [ ] Runs `python .spine/spine.py doctor` before assessment
+- [ ] Deep assessment of source code before writing
 - [ ] Fills `global/*` and ledger (`progress.md`, `learnings.md` if applicable) with agent-optimized detail
 - [ ] Documents alterations, risks, and opportunities when evidence exists
 - [ ] Does **not** modify `roadmap.md`
