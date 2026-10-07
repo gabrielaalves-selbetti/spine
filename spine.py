@@ -77,6 +77,9 @@ TASK_LEGACY_PATTERNS = (r"^\*\*Status:\*\*", r"^\*\*Branch:\*\*")
 TASK_REQUIRED_SECTIONS = ("## Objective", "## Acceptance Criteria")
 TASK_TEMPLATE_NAME = "_task-template.md"
 TASK_DIRS = ("docs/memory/active_tasks", "docs/memory/completed_tasks")
+# Project seed that holds the per-project integration settings (base branch, tracker, repository).
+INTEGRATIONS_REL = "docs/governance/integrations.md"
+INTEGRATIONS_BASE_KEY = "base_branch"
 
 LEGACY_ARTIFACTS = (".spine-vendor", "opencode.json", ".opencode")
 
@@ -696,7 +699,7 @@ def _count_tags(frontmatter: str) -> int:
     return sum(1 for item in items if item.lstrip()[1:].strip())
 
 
-def _validate_task_frontmatter(task_file: Path, frontmatter: str, report: Report) -> None:
+def _validate_task_frontmatter(task_file: Path, frontmatter: str, report: Report, default_base: str) -> None:
     values = {key: _frontmatter_value(frontmatter, key) for key in TASK_REQUIRED_KEYS}
     for key, value in values.items():
         if value is None:
@@ -716,7 +719,7 @@ def _validate_task_frontmatter(task_file: Path, frontmatter: str, report: Report
         kind, _, suffix = branch.partition("/")
         if kind not in TASK_BRANCH_TYPES or suffix != task_id:
             report.fail(f"branch must be <type>/<task_id> with type in {', '.join(TASK_BRANCH_TYPES)}: {branch!r}")
-        expected_base = TASK_BASE_BY_TYPE.get(kind, TASK_DEFAULT_BASE)
+        expected_base = TASK_BASE_BY_TYPE.get(kind, default_base)
         if values["base"] is not None and values["base"] != expected_base:
             report.warn(f"base is not {expected_base}: {values['base']!r}")
 
@@ -727,12 +730,30 @@ def _validate_task_frontmatter(task_file: Path, frontmatter: str, report: Report
         report.fail(f"too many tags ({tag_count}; max {TASK_MAX_TAGS})")
 
 
-def validate_task(task_file: Path, report: Report | None = None) -> Report:
+def read_base_branch(project_root: Path) -> str:
+    """Read the project's base branch from the integrations seed.
+
+    Args:
+        project_root: Target project root.
+
+    Returns:
+        The ``base_branch`` value of ``docs/governance/integrations.md``, or
+        ``TASK_DEFAULT_BASE`` when the file or the value is missing.
+    """
+    path = project_root.joinpath(*PurePosixPath(INTEGRATIONS_REL).parts)
+    if not path.is_file():
+        return TASK_DEFAULT_BASE
+    frontmatter = _frontmatter(read_lenient(path)) or ""
+    return _frontmatter_value(frontmatter, INTEGRATIONS_BASE_KEY) or TASK_DEFAULT_BASE
+
+
+def validate_task(task_file: Path, report: Report | None = None, default_base: str = TASK_DEFAULT_BASE) -> Report:
     """Validate a memory bank task file against the Spine task contract.
 
     Args:
         task_file: Path to the task markdown file (must exist).
         report: Optional report to append to.
+        default_base: Expected ``base`` for every branch type without its own base (``hotfix`` keeps ``production``).
 
     Returns:
         The report with recorded errors and warnings.
@@ -744,7 +765,7 @@ def validate_task(task_file: Path, report: Report | None = None) -> Report:
     if frontmatter is None:
         report.fail("missing YAML frontmatter (file must start with ---)")
     else:
-        _validate_task_frontmatter(task_file, frontmatter, report)
+        _validate_task_frontmatter(task_file, frontmatter, report, default_base)
 
     for pattern in TASK_LEGACY_PATTERNS:
         if re.search(pattern, content, flags=re.MULTILINE):
@@ -953,7 +974,7 @@ def run_doctor(args: argparse.Namespace) -> int:
         if not task_file.is_file():
             print(f"ERROR: file not found: {args.task}", file=sys.stderr)
             return 1
-        report = validate_task(task_file)
+        report = validate_task(task_file, default_base=read_base_branch(Path(args.target)))
         if not report.passed:
             print(f"Validation failed with {report.errors} error(s).", file=sys.stderr)
             return 1
@@ -989,7 +1010,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     doctor_parser = subparsers.add_parser("doctor", help="Validate the installed structure or a task file.")
     doctor_parser.add_argument("target", nargs="?", default=".", help="Project root (default: current directory)")
-    doctor_parser.add_argument("--task", metavar="FILE", help="Validate one task file against the task contract")
+    doctor_parser.add_argument(
+        "--task",
+        metavar="FILE",
+        help=f"Validate one task file against the task contract (base branch read from TARGET/{INTEGRATIONS_REL})",
+    )
     doctor_parser.set_defaults(handler=run_doctor)
     return parser
 

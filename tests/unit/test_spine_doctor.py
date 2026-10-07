@@ -290,6 +290,57 @@ def test_unexpected_base_is_a_warning(spine: ModuleType, tmp_path: Path) -> None
     assert report.warnings == 1
 
 
+def _integrations(project_root: Path, base_branch: str) -> None:
+    path = project_root / "docs" / "governance" / "integrations.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    content = f"---\ntracker: none\nbase_branch: {base_branch}  # project base\n---\n\n# Integrations\n"
+    path.write_bytes(content.encode("utf-8"))
+
+
+def test_configured_base_is_accepted(spine: ModuleType, tmp_path: Path) -> None:
+    _integrations(tmp_path, "dev")
+    base = spine.read_base_branch(tmp_path)
+
+    on_dev = spine.validate_task(_task(tmp_path, VALID_TASK.replace("base: develop", "base: dev")), default_base=base)
+    on_develop = spine.validate_task(_task(tmp_path, VALID_TASK), default_base=base)
+
+    assert base == "dev"
+    assert on_dev.passed and on_dev.warnings == 0, _text(on_dev)
+    assert on_develop.passed and on_develop.warnings == 1
+    assert "base is not dev" in _text(on_develop)
+
+
+def test_configured_base_keeps_production_for_hotfix(spine: ModuleType, tmp_path: Path) -> None:
+    hotfix = VALID_TASK.replace("feat/PROJ-123", "hotfix/PROJ-123").replace("base: develop", "base: production")
+
+    report = spine.validate_task(_task(tmp_path, hotfix), default_base="dev")
+
+    assert report.passed and report.warnings == 0, _text(report)
+
+
+def test_missing_integrations_defaults_to_develop(spine: ModuleType, tmp_path: Path) -> None:
+    assert spine.read_base_branch(tmp_path) == "develop"
+
+
+def test_shipped_integrations_seed_uses_default_base(spine: ModuleType) -> None:
+    assert spine.read_base_branch(REPO_ROOT / "templates") == spine.TASK_DEFAULT_BASE
+
+
+def test_cli_task_reads_base_from_target(tmp_path: Path) -> None:
+    _integrations(tmp_path, "dev")
+    task = _task(tmp_path, VALID_TASK.replace("base: develop", "base: dev"))
+
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "doctor", str(tmp_path), "--task", str(task)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "WARNING" not in result.stderr
+
+
 def test_file_name_must_start_with_task_id(spine: ModuleType, tmp_path: Path) -> None:
     report = spine.validate_task(_task(tmp_path, VALID_TASK, "007-example.md"))
 
