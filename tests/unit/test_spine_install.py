@@ -316,6 +316,7 @@ def test_real_repository_installs_expected_commands(spine: ModuleType, target: P
         "spine-execute.md",
         "spine-harvest.md",
         "spine-plan.md",
+        "spine-pr.md",
     ]
     for ide_dir in (".claude/commands", ".cursor/commands", ".agents/workflows", ".windsurf/workflows"):
         assert sorted(path.name for path in (target / ide_dir).iterdir()) == commands

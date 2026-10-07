@@ -13,7 +13,7 @@ Act as a Tech Lead and Knowledge Manager.
    - GitFlow is mandatory (not optional) for harvest.
    - Read `task_id`, `branch`, and `base` from task frontmatter.
    - The implementation branch must be `<type>/<task-id>` and must be the current branch.
-   - The base integration branch must be `develop` (`production` for `hotfix`).
+   - The base integration branch must be the project base branch (`base_branch` in `docs/governance/integrations.md`, default `develop`; `production` for `hotfix`).
    - If branch naming does not comply, stop and request correction before any consolidation steps.
 
 3. **Integrate the latest base (shared repository):**
@@ -56,6 +56,6 @@ Act as a Tech Lead and Knowledge Manager.
    - Make the final commit with a semantic message (prefix matching the branch type).
    - Push the branch: `git push -u origin <branch>`.
    - **Do not** merge into `<base>` locally and **do not** delete the branch. The delivery, including the memory bank changes, reaches `<base>` through a Pull Request reviewed by the team.
-   - Do not open the Pull Request with a tool unless the user asks for it; report that it is pending.
+   - Do not open the Pull Request here; the next step is `/spine-pr`, which opens it as a draft linked to the tracker item.
 
-8. **Summary:** Present a concise summary of what was learned and improved in the project, then state the handoff: "Branch `<branch>` pushed. Open a Pull Request into `<base>`."
+8. **Summary:** Present a concise summary of what was learned and improved in the project, then state the handoff: "Branch `<branch>` pushed. Next: `/spine-pr` to open a draft Pull Request into `<base>`."

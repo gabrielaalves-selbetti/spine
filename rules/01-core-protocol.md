@@ -16,10 +16,10 @@ alwaysApply: true
    c. Refactor if needed while keeping tests green.
    d. Repeat for each acceptance criterion.
 5. **Execute:** implement atomically and validate all tests pass.
-6. **Harvest:** append delivery log in `progress.md`; update `learnings.md` when applicable; update `decision-log.md` and `domain-glossary.md` when applicable; move task to `completed_tasks/` via `git mv`; push the branch and hand off to a Pull Request.
+6. **Harvest:** append delivery log in `progress.md`; update `learnings.md` when applicable; update `decision-log.md` and `domain-glossary.md` when applicable; move task to `completed_tasks/` via `git mv`; push the branch and hand off to a Pull Request with `/spine-pr`.
 
 ## 2. Definition of Done
-- [ ] Isolated branch `<type>/<task-id>` created from `develop` (`production` for `hotfix`)
+- [ ] Isolated branch `<type>/<task-id>` created from the base branch (`base_branch` in `docs/governance/integrations.md`, default `develop`; `production` for `hotfix`)
 - [ ] `docs/memory/active_tasks/<task-id>-<descriptive-name>.md` with frontmatter (including `owner`), scope, and acceptance criteria
 - [ ] Tests executed and passing
 - [ ] `docs/memory/ledger/progress.md` updated (delivery log entry; Current state when team blockers or next steps changed)
@@ -27,11 +27,11 @@ alwaysApply: true
 - [ ] Task file in `docs/memory/completed_tasks/` with `status: DONE`
 - [ ] `docs/memory/global/decision-log.md` updated (if there was an architectural decision)
 - [ ] `docs/memory/global/domain-glossary.md` updated (if canonical domain terms were promoted during discovery)
-- [ ] Branch pushed and Pull Request to `base` requested
+- [ ] Branch pushed and Pull Request to `base` opened as a draft with `/spine-pr` (or requested from the team)
 
 ## 3. Guard rails
 - Never use `git push --force`.
-- Never commit directly to `main`, `production`, `staging`, or `develop`; never merge into them locally. Integration happens through Pull Requests.
+- Never commit directly to `main`, `production`, `staging`, `develop`, or the configured `base_branch`; never merge into them locally. Integration happens through Pull Requests.
 - Never assume an ambiguous requirement without confirmation. Surface assumptions and tradeoffs first.
 - No silent decisions: architectural decisions require a recorded "why".
 - No abstractions for single-use code.
@@ -49,3 +49,12 @@ Prefer Conventional Commits:
 - `chore:`
 
 The commit prefix normally matches the branch type (`feat/PROJ-123` → `feat:`).
+
+## 5. External tools (tracker and repository)
+Project settings live in `docs/governance/integrations.md`.
+- **MCP first, CLI as fallback.** Use the configured MCP server. Use the CLI in `cli_fallback` only when the MCP server is not configured, not reachable, or lacks the operation, and say so in one line first: `Using CLI fallback (<cli>): <reason>.`
+- **No workaround.** A refusal by the user, a permission rule, or a guard that blocks one path is never worked around through the other path. Stop, explain what was blocked, and ask how to proceed.
+- **Every write asks first.** Creating or updating a Pull Request, changing a tracker item, or posting a comment requires an explicit confirmation after showing what will be written.
+- **Never** approve, vote on, complete, merge, or abandon a Pull Request; never enable auto-complete; never bypass, override, or disable branch policies.
+- **Never** set a tracker state other than the configured `publish_state`, and never one listed in `forbidden_states`.
+- **No personal data or credentials** in Pull Request titles, descriptions, or comments.
