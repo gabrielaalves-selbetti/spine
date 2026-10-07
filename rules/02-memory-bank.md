@@ -124,7 +124,7 @@ related_learnings: []
 | `owner` | yes | Person responsible for the task (name or handle) |
 | `tags` | yes | YAML list; 1–5 tags per `memory-tags-policy.md` |
 | `branch` | yes | `<type>/<task_id>`; type is one of `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release` |
-| `base` | yes | `develop` (`production` for `hotfix`) |
+| `base` | yes | `base_branch` from `docs/governance/integrations.md` (default `develop`; `production` for `hotfix`) |
 | `execution_skill` | recommended | Without `@` prefix |
 | `created_at` / `updated_at` | yes | ISO date `YYYY-MM-DD` |
 | `completed_at` | on DONE | Set at harvest |

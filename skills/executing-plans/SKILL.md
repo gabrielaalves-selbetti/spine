@@ -34,7 +34,7 @@ If frontmatter is missing or incomplete, stop and request plan correction to `_t
 Per [`commands/spine-execute.md`](../../commands/spine-execute.md):
 
 - `branch` must be `<type>/<task-id>` (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release`)
-- `base` must be `develop` (`production` for `hotfix`)
+- `base` must be `base_branch` from `docs/governance/integrations.md` (default `develop`; `production` for `hotfix`)
 - Checkout base, pull, create or switch to the task branch
 - Do not proceed if branch policy is violated
 

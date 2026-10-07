@@ -11,7 +11,7 @@ Act as a Software Engineer focused on rigorous implementation.
    - Read `owner` from frontmatter. If the task belongs to someone else, confirm with the user before changing anything.
 2. **Branch Setup:** Read `task_id`, `branch`, and `base` from task YAML frontmatter.
    - **GitFlow is mandatory (not optional) during execution.**
-   - `branch` must be `<type>/<task-id>` with `<type>` in `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release`. `base` must be `develop` (`production` for `hotfix`).
+   - `branch` must be `<type>/<task-id>` with `<type>` in `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release`. `base` must be the project base branch (`base_branch` in `docs/governance/integrations.md`, default `develop`; `production` for `hotfix`).
    - If `branch` or `base` are missing or do not comply, stop and request a plan correction before implementation.
    - **Sync base before any work (shared repository):**
      1. `git fetch origin`

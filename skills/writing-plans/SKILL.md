@@ -122,7 +122,7 @@ If input is an IDE-native Plan draft with `**Goal:**`, `**Architecture:**`, or r
 ## GitFlow (Spine default)
 
 - `branch: <type>/<task-id>` — `<type>` is one of `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release`
-- `base: develop` (`production` for `hotfix`)
+- `base:` the `base_branch` from `docs/governance/integrations.md` (default `develop`; `production` for `hotfix`)
 - `owner:` the person responsible for the task
 - Do not create the branch during planning.
 

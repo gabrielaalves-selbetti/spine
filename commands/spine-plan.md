@@ -14,7 +14,7 @@ Act as a Senior Software Architect. Follow the instructions provided in the user
    - Every plan belongs to one ticket in the team's tracker. Take the ID from the user arguments (for example `PROJ-123` or `48213`).
    - If no ID was given, ask for it and stop until answered. Never invent an ID and never number tasks locally.
    - The ID may contain only letters, digits, and hyphens.
-   - Run `git fetch origin`, then look for the ID in `docs/memory/active_tasks/` and `docs/memory/completed_tasks/` (working tree and `origin/develop`). If a task file with this ID already exists, update that file or stop and ask — never create a second one.
+   - Run `git fetch origin`, then look for the ID in `docs/memory/active_tasks/` and `docs/memory/completed_tasks/` (working tree and `origin/<base_branch>`). If a task file with this ID already exists, update that file or stop and ask — never create a second one.
 
 2. **Discovery (conditional — `grill-me` skill):**
    Run `.spine/skills/grill-me/SKILL.md` **before** `writing-plans` when **any** of the following applies. Otherwise skip discovery and proceed to step 3.
@@ -56,7 +56,7 @@ Act as a Senior Software Architect. Follow the instructions provided in the user
 
 5. **Task Plan in the Memory Bank:**
    - **GitFlow is mandatory (not optional):** every plan must follow the branch conventions in `docs/workflow/gitflow.md`.
-   - **Mandatory branch policy:** `<type>/<task-id>` as execution branch, where `<type>` is one of `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release` — pick the one that matches the nature of the work (same vocabulary as Conventional Commits). Base is `develop`; for `hotfix` it is `production`. Never create the branch during planning.
+   - **Mandatory branch policy:** `<type>/<task-id>` as execution branch, where `<type>` is one of `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release` — pick the one that matches the nature of the work (same vocabulary as Conventional Commits). Base is the project base branch: `base_branch` in `docs/governance/integrations.md` (default `develop`); for `hotfix` it is `production`. Never create the branch during planning.
    - Ensure `docs/memory/active_tasks/` exists.
    - Create: `docs/memory/active_tasks/<task-id>-<descriptive-name>.md`
    - Example: `docs/memory/active_tasks/PROJ-123-social-login-adjustment.md`
@@ -76,7 +76,7 @@ Act as a Senior Software Architect. Follow the instructions provided in the user
    - [ ] Frontmatter complete (`task_id`, `title`, `goal`, `status`, `owner`, `tags`, `branch`, `base`, dates)
    - [ ] `task_id` is the tracker ID and the file name starts with `<task-id>-`
    - [ ] `tags` present (1–5 per `memory-tags-policy.md`)
-   - [ ] `branch` is `<type>/<task-id>` and `base` is `develop` (`production` for `hotfix`)
+   - [ ] `branch` is `<type>/<task-id>` and `base` is the project base branch (`base_branch` in `docs/governance/integrations.md`, default `develop`; `production` for `hotfix`)
    - [ ] No legacy inline Status/Branch/Goal block; no `superpowers:*` headers
    - [ ] Task/Step blocks only under `## Implementation Plan` (if present)
 
