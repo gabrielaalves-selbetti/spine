@@ -74,7 +74,7 @@ def test_healthy_install_passes(spine: ModuleType, installed: Path) -> None:
 def test_unverified_ide_is_flagged(spine: ModuleType, installed: Path) -> None:
     report = spine.doctor(installed)
 
-    assert "A VERIFICAR" in _text(report)
+    assert "UNVERIFIED" in _text(report)
     assert "Cursor" in _text(report)
 
 

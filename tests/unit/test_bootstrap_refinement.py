@@ -75,5 +75,5 @@ def test_readme_documents_install_and_doctor() -> None:
 def test_agents_md_documents_installer_contract() -> None:
     text = _read("AGENTS.md")
     assert "spine.py" in text
-    assert "A VERIFICAR" in text
+    assert "UNVERIFIED" in text
     assert "/spine-plan" in text

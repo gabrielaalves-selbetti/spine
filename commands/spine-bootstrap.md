@@ -143,7 +143,7 @@ Always include:
 - **Intentionally untouched:** `roadmap.md` (not bootstrap scope)
 - **Created vs. updated vs. preserved**
 - **Gaps:** Credentials, business rules, stakeholder intent, branch policy exceptions, unresolved domain terms
-- **Setup status:** `spine.py doctor` result, including warnings and `A VERIFICAR` notes
+- **Setup status:** `spine.py doctor` result, including warnings and `UNVERIFIED` notes
 - **GitFlow note:** existing branches vs Spine target (`develop`, `staging`, `production`, `main` + `<type>/<task-id>`)
 - **Next step:** `/spine-plan <task-id> <goal>` — bootstrap does not produce plans or tasks
 - **Re-bootstrap:** idempotent enrichment only

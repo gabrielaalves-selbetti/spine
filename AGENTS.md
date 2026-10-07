@@ -109,7 +109,7 @@ Changes to the installer must keep all of these true (the tests in `tests/unit/t
 | Pointer | per-IDE command files | Rewritten when missing or untouched; a local edit is kept (`SKIP`) unless `--force` |
 | Seed | `AGENTS.md`, `CLAUDE.md`, `docs/**` | Created only when missing; never overwritten, not even with `--force` |
 
-- **IDE paths** live in one table, `IDE_LAYOUTS`. An entry stays `verified=False` (reported as `A VERIFICAR`) until its paths were checked by hand against the IDE.
+- **IDE paths** live in one table, `IDE_LAYOUTS`. An entry stays `verified=False` (reported as `UNVERIFIED`) until its paths were checked by hand against the IDE.
 - `commands/spine-promote.md` is maintainer-only and listed in `INTERNAL_COMMANDS`; it must never be installed into a consumer project.
 - Skill authoring artifacts matching `EXCLUDED_SKILL_PATTERNS` (`CREATION-LOG.md`, `test-*.md`, `*.sh`, `*.ts`) stay in the Spine repo and are never copied into `.spine/skills/`.
 

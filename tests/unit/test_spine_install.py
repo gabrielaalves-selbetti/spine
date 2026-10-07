@@ -277,7 +277,7 @@ def test_cli_dry_run_exit_code_and_output(
     captured = capsys.readouterr()
     assert exit_code == 0
     assert "CREATE" in captured.out
-    assert "A VERIFICAR" in captured.err
+    assert "UNVERIFIED" in captured.err
     assert snapshot(target) == {}
 
 

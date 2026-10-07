@@ -165,11 +165,11 @@ If the project already has an `AGENTS.md`, it is left alone: the Spine hub is wr
 | `--ides` | Rules | Command pointers | Status |
 |---|---|---|---|
 | `claude` | `CLAUDE.md` → `@AGENTS.md` | `.claude/commands/` | Known layout |
-| `cursor` | `AGENTS.md` at the root | `.cursor/commands/` | **A VERIFICAR** |
-| `antigravity` | `AGENTS.md` at the root | `.agents/workflows/` (or `.agent/workflows/`) | **A VERIFICAR** |
-| `windsurf` | `AGENTS.md` at the root | `.windsurf/workflows/` | **A VERIFICAR** |
+| `cursor` | `AGENTS.md` at the root | `.cursor/commands/` | **UNVERIFIED** |
+| `antigravity` | `AGENTS.md` at the root | `.agents/workflows/` (or `.agent/workflows/`) | **UNVERIFIED** |
+| `windsurf` | `AGENTS.md` at the root | `.windsurf/workflows/` | **UNVERIFIED** |
 
-Rows marked **A VERIFICAR** have not been checked by hand against the IDE yet; `install` and `doctor` print
+Rows marked **UNVERIFIED** have not been checked by hand against the IDE yet; `install` and `doctor` print
 a note for them. The paths live in one table (`IDE_LAYOUTS` in `spine.py`).
 
 ## Usage
@@ -199,7 +199,7 @@ does not show a command, open its instructions file there and follow it.
 
 Branches: `main`, `develop`, `staging`, `production`, and work branches `<type>/<task-id>` where `<type>` is one of
 `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `hotfix`, `release`. Promotion goes
-`develop` → `staging` → `production` → `main`. Details: `docs/workflow/gitflow-operacional.md` in the project.
+`develop` → `staging` → `production` → `main`. Details: `docs/workflow/gitflow.md` in the project.
 
 Delivery of one task, with the task file status at each step:
 

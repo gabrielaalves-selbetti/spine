@@ -52,7 +52,7 @@ IGNORED_DIR_NAMES = (".git", "__pycache__", "node_modules")
 POINTER_MARKER = "<!-- spine:pointer"
 GENERIC_ARGUMENTS_LINE = "User arguments: any text typed after the command name."
 
-UNVERIFIED_TAG = "A VERIFICAR"
+UNVERIFIED_TAG = "UNVERIFIED"
 UTF8_BOM = b"\xef\xbb\xbf"
 
 TASK_REQUIRED_KEYS = (
